@@ -1,0 +1,50 @@
+services:
+  dev:
+    container_name: nextjs-dev
+    build:
+      context: .
+      target: base
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+    command: >
+      sh -c "pnpm install && pnpm dev"
+    networks:
+      - nextjs-network
+    profiles:
+      - dev
+
+  prod:
+    container_name: nextjs-prod
+    build:
+      context: .
+      target: runner
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+    networks:
+      - nextjs-network
+    profiles:
+      - prod
+
+  cloudflared:
+    container_name: cloudflared-tunnel
+    image: cloudflare/cloudflared:latest
+    restart: unless-stopped
+    depends_on:
+      - prod
+    environment:
+      - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
+    command: tunnel --no-autoupdate run
+    networks:
+      - nextjs-network
+    profiles:
+      - prod
+
+networks:
+  nextjs-network:
+    driver: bridge
