@@ -8,7 +8,7 @@ on:
 jobs:
   deploy:
     name: Deploy
-    runs-on: self-hosted
+    runs-on: [self-hosted, production, deploy]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
