@@ -1,0 +1,35 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: [self-hosted, production, deploy]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Deploy with Docker Compose
+        env:
+          CLOUDFLARE_TUNNEL_TOKEN: ${{ secrets.CLOUDFLARE_TUNNEL_TOKEN }}
+        run: |
+          set -e
+          echo "Starting deployment..."
+          if ! docker compose --profile prod up -d --build; then
+            echo "Deployment failed. Cleaning up containers..."
+            docker compose --profile prod down
+            exit 1
+          fi
+          echo "Deployment succeeded. Checking container health..."
+          # Example health check: ensure all containers are running
+          unhealthy=$(docker compose ps --filter "status=exited" --format "{{.Name}}")
+          if [ -n "$unhealthy" ]; then
+            echo "Some containers are not running: $unhealthy"
+            docker compose --profile prod down
+            exit 1
+          fi
+          echo "All containers are healthy."
