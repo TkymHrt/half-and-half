@@ -4,6 +4,8 @@ services:
     build:
       context: .
       target: base
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     ports:
       - "3000:3000"
     volumes:
@@ -23,6 +25,8 @@ services:
     build:
       context: .
       target: runner
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     restart: unless-stopped
     environment:
       - NODE_ENV=production
