@@ -12,10 +12,8 @@ Ultracite enforces strict type safety, accessibility standards, and consistent c
 - AI-friendly code generation
 
 ## Before Writing Code
-1. Analyze existing patterns in the codebase
-2. Consider edge cases and error scenarios
-3. Follow the rules below strictly
-4. Validate accessibility requirements
+1. Review the product docs in `doc/system-design.md` and `doc/mvp.md`, then plan work against the checklist in `doc/task.md`
+2. As you complete a task, check or uncheck relevant items in `doc/task.md` as you progress so the AI ​​Assistant can track your status.
 
 ## Rules
 
@@ -307,9 +305,8 @@ Ultracite enforces strict type safety, accessibility standards, and consistent c
 - Don't use disabled tests.
 
 ## Common Tasks
-- `npx ultracite init` - Initialize Ultracite in your project
-- `npx ultracite fix` - Format and fix code automatically
-- `npx ultracite check` - Check for issues without fixing
+- `pnpm ultracite fix` - Format and fix code automatically
+- `pnpm ultracite check` - Check for issues without fixing
 
 ## Example: Error Handling
 ```typescript
