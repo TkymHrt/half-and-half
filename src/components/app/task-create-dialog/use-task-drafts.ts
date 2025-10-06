@@ -9,6 +9,7 @@ export type TaskDraftState = {
   selectedItem: DraftItem | undefined;
   selectItem: (id: string) => void;
   addItem: () => void;
+  addMultipleItems: (count: number) => void;
   removeItem: (id: string) => void;
   updateItemFields: (id: string, patch: Partial<DraftItem>) => void;
   updateStatus: (id: string, status: ItemStatus) => void;
@@ -43,6 +44,20 @@ export function useTaskDrafts(): TaskDraftState {
       const created = nextItems.at(-1);
       if (created) {
         setSelectedItemId(created.id);
+      }
+      return nextItems;
+    });
+  }, []);
+
+  const addMultipleItems = useCallback((count: number) => {
+    setItems((previous) => {
+      const newItems = Array.from({ length: count }, () =>
+        createInitialDraft()
+      );
+      const nextItems = [...previous, ...newItems];
+      const lastCreated = nextItems.at(-1);
+      if (lastCreated) {
+        setSelectedItemId(lastCreated.id);
       }
       return nextItems;
     });
@@ -179,6 +194,7 @@ export function useTaskDrafts(): TaskDraftState {
     selectedItem,
     selectItem,
     addItem,
+    addMultipleItems,
     removeItem,
     updateItemFields,
     updateStatus,

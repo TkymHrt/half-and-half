@@ -3,6 +3,7 @@
 import { useId, useMemo } from "react";
 import type { FloorMapPin } from "@/components/app/map/floor-map";
 import { FloorMap } from "@/components/app/map/floor-map";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import {
@@ -205,6 +206,30 @@ export function PinPlacementStep({
   const selectedErrors = selectedItemId ? errors[selectedItemId] : undefined;
   const mapInstructionsId = useId();
 
+  const currentIndex = items.findIndex((item) => item.id === selectedItemId);
+  const hasPrevious = currentIndex > 0;
+  const hasNext = currentIndex < items.length - 1;
+
+  const handlePrevious = () => {
+    if (!hasPrevious) {
+      return;
+    }
+    const previousItem = items[currentIndex - 1];
+    if (previousItem) {
+      onSelectItem(previousItem.id);
+    }
+  };
+
+  const handleNext = () => {
+    if (!hasNext) {
+      return;
+    }
+    const nextItem = items[currentIndex + 1];
+    if (nextItem) {
+      onSelectItem(nextItem.id);
+    }
+  };
+
   if (isLoadingAreas) {
     return (
       <div className="grid h-[28rem] place-items-center rounded-lg border border-dashed text-muted-foreground">
@@ -224,33 +249,60 @@ export function PinPlacementStep({
   const mapLabel = buildMapLabel(selectedArea, selectedFloor);
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
+    <div className="space-y-3">
+      <div className="space-y-3">
         <div>
-          <p className="font-medium text-sm">{STEP_LABELS.at(2)}</p>
+          <p className="font-medium text-sm sm:text-base">
+            {STEP_LABELS.at(2)}
+          </p>
           <p className="text-muted-foreground text-xs">
-            物品ごとにエリアと階層、借用元・移動先の位置を指定します
+            {currentIndex + 1} / {items.length}件目を編集中
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <Label className="text-xs" htmlFor="pin-item-select">
-            編集対象
-          </Label>
-          <Select
-            onValueChange={(value) => onSelectItem(value)}
-            value={selectedItemId ?? ""}
-          >
-            <SelectTrigger className="w-48" id="pin-item-select">
-              <SelectValue placeholder="物品を選択" />
-            </SelectTrigger>
-            <SelectContent>
-              {items.map((item) => (
-                <SelectItem key={item.id} value={item.id}>
-                  {item.name || "名称未設定の物品"}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+
+        <div className="flex gap-2">
+          <div className="min-w-0 flex-1 space-y-2">
+            <Label htmlFor="pin-item-select">編集する物品</Label>
+            <Select
+              onValueChange={(value) => onSelectItem(value)}
+              value={selectedItemId ?? ""}
+            >
+              <SelectTrigger className="min-h-[44px]" id="pin-item-select">
+                <SelectValue placeholder="物品を選択" />
+              </SelectTrigger>
+              <SelectContent>
+                {items.map((item, index) => (
+                  <SelectItem key={item.id} value={item.id}>
+                    {index + 1}. {item.name || "名称未設定"}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex shrink-0 items-end gap-1">
+            <Button
+              aria-label="前の物品"
+              className="h-[44px] w-[44px]"
+              disabled={!hasPrevious}
+              onClick={handlePrevious}
+              size="icon"
+              type="button"
+              variant="outline"
+            >
+              ←
+            </Button>
+            <Button
+              aria-label="次の物品"
+              className="h-[44px] w-[44px]"
+              disabled={!hasNext}
+              onClick={handleNext}
+              size="icon"
+              type="button"
+              variant="outline"
+            >
+              →
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -260,90 +312,96 @@ export function PinPlacementStep({
             {selectedItem.name || "名称未設定の物品"}
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid gap-4 sm:grid-cols-3">
-            <div className="space-y-1">
-              <Label htmlFor="pin-area-select">エリア</Label>
-              <Select
-                onValueChange={(value) =>
-                  onSelectArea(selectedItem.id, value || null)
-                }
-                value={selectedItem.pin?.areaId ?? ""}
-              >
-                <SelectTrigger id="pin-area-select">
-                  <SelectValue placeholder="エリアを選択" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">指定なし</SelectItem>
-                  {areas.map((area) => (
-                    <SelectItem key={area.id} value={area.id}>
-                      {area.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-1">
-              <Label htmlFor="pin-floor-select">階層</Label>
-              <Select
-                disabled={!selectedArea}
-                onValueChange={(value) =>
-                  onSelectFloor(selectedItem.id, value || null)
-                }
-                value={selectedItem.pin?.floorId ?? ""}
-              >
-                <SelectTrigger id="pin-floor-select">
-                  <SelectValue placeholder="階層を選択" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">指定なし</SelectItem>
-                  {availableFloors.map((floor) => (
-                    <SelectItem key={floor.id} value={floor.id}>
-                      {floor.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-1">
-              <Label htmlFor="pin-mode-toggle">指定中の位置</Label>
-              <ToggleGroup
-                id="pin-mode-toggle"
-                onValueChange={(value) =>
-                  onEditModeChange((value as PinEditMode) || editMode)
-                }
-                type="single"
-                value={editMode}
-              >
-                <ToggleGroupItem aria-label="借用元の位置" value="source">
-                  借用元
-                </ToggleGroupItem>
-                <ToggleGroupItem aria-label="移動先の位置" value="target">
-                  移動先
-                </ToggleGroupItem>
-              </ToggleGroup>
-            </div>
+        <CardContent className="space-y-3">
+          <div className="space-y-2">
+            <Label htmlFor="pin-area-select">エリア</Label>
+            <Select
+              onValueChange={(value) =>
+                onSelectArea(selectedItem.id, value === "none" ? null : value)
+              }
+              value={selectedItem.pin?.areaId ?? "none"}
+            >
+              <SelectTrigger className="min-h-[44px]" id="pin-area-select">
+                <SelectValue placeholder="エリアを選択" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">指定なし</SelectItem>
+                {areas.map((area) => (
+                  <SelectItem key={area.id} value={area.id}>
+                    {area.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
-          <div className="rounded-md border p-3 text-sm">
-            <p className="font-medium">{STEP_CAPTIONS[editMode]}</p>
-            <p className="text-muted-foreground text-xs">
-              図面をクリックすると、現在選択中の位置として座標が保存されます。
+          <div className="space-y-2">
+            <Label htmlFor="pin-floor-select">階層</Label>
+            <Select
+              disabled={!selectedArea}
+              onValueChange={(value) =>
+                onSelectFloor(selectedItem.id, value === "none" ? null : value)
+              }
+              value={selectedItem.pin?.floorId ?? "none"}
+            >
+              <SelectTrigger className="min-h-[44px]" id="pin-floor-select">
+                <SelectValue placeholder="階層を選択" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">指定なし</SelectItem>
+                {availableFloors.map((floor) => (
+                  <SelectItem key={floor.id} value={floor.id}>
+                    {floor.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="pin-mode-toggle">位置の種類</Label>
+            <ToggleGroup
+              className="grid w-full grid-cols-2 gap-2"
+              id="pin-mode-toggle"
+              onValueChange={(value) =>
+                onEditModeChange((value as PinEditMode) || editMode)
+              }
+              type="single"
+              value={editMode}
+            >
+              <ToggleGroupItem
+                aria-label="借用元の位置"
+                className="min-h-[44px]"
+                value="source"
+              >
+                借用元
+              </ToggleGroupItem>
+              <ToggleGroupItem
+                aria-label="移動先の位置"
+                className="min-h-[44px]"
+                value="target"
+              >
+                移動先
+              </ToggleGroupItem>
+            </ToggleGroup>
+          </div>
+
+          <div className="rounded-md border bg-muted/30 p-3">
+            <p className="mb-2 font-medium text-sm">
+              {STEP_CAPTIONS[editMode]}
             </p>
-            <div className="mt-3 grid gap-2 sm:grid-cols-2">
-              <div>
+            <div className="grid gap-2 text-sm sm:grid-cols-2">
+              <div className="rounded bg-background p-2">
                 <p className="text-muted-foreground text-xs">借用元</p>
-                <p className="text-sm">
+                <p className="mt-1 font-medium">
                   {selectedItem.pin?.source
                     ? formatPoint(selectedItem.pin.source, PERCENT_DECIMALS)
                     : "未設定"}
                 </p>
               </div>
-              <div>
+              <div className="rounded bg-background p-2">
                 <p className="text-muted-foreground text-xs">移動先</p>
-                <p className="text-sm">
+                <p className="mt-1 font-medium">
                   {selectedItem.pin?.target
                     ? formatPoint(selectedItem.pin.target, PERCENT_DECIMALS)
                     : "未設定"}

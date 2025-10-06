@@ -16,17 +16,17 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { createTaskWithItems } from "@/lib/application/activity";
 import { AreaRepository } from "@/lib/mock/repositories/areas";
 import type { Area, Item, LogEvent, RelativePoint, Task } from "@/types/app";
 
-import { PERCENT_SCALE, STEP_LABELS } from "./task-create-dialog/constants";
+import { STEP_LABELS } from "./task-create-dialog/constants";
 import {
   type TaskFormValues,
   taskFormSchema,
 } from "./task-create-dialog/schema";
+import { Stepper } from "./task-create-dialog/stepper";
 import { ItemListStep } from "./task-create-dialog/steps/item-list-step";
 import { PinPlacementStep } from "./task-create-dialog/steps/pin-placement-step";
 import { TaskDetailsStep } from "./task-create-dialog/steps/task-details-step";
@@ -268,6 +268,11 @@ export function TaskCreateDialog({
   ) => {
     setPinPoint(itemId, mode, point);
     setPinErrors((prev) => omitError(prev, itemId));
+
+    // 借用元を設定したら自動的に移動先モードに切り替え
+    if (mode === "source") {
+      setPinEditMode("target");
+    }
   };
 
   const onSubmit = form.handleSubmit(async (values) => {
@@ -318,7 +323,6 @@ export function TaskCreateDialog({
   });
 
   const isLastStep = currentStep === TOTAL_STEPS - 1;
-  const progressValue = ((currentStep + 1) / TOTAL_STEPS) * PERCENT_SCALE;
 
   let primaryButtonLabel = "次へ";
   if (isLastStep) {
@@ -331,107 +335,104 @@ export function TaskCreateDialog({
   return (
     <Dialog onOpenChange={setOpen} open={open}>
       {trigger ? <DialogTrigger asChild>{trigger}</DialogTrigger> : null}
-      <DialogContent className="sm:max-w-3xl">
-        <DialogHeader>
-          <DialogTitle>タスクを作成する</DialogTitle>
-          <DialogDescription>
-            {STEP_LABELS[currentStep]}の入力内容を確認しながら進めてください。
-          </DialogDescription>
-        </DialogHeader>
+      <DialogContent className="h-[100dvh] max-h-[100dvh] w-full max-w-full overflow-hidden p-0 sm:h-auto sm:max-h-[90vh] sm:max-w-3xl sm:rounded-lg sm:p-6">
+        <div className="flex h-full flex-col">
+          <DialogHeader className="shrink-0 border-b p-4 sm:border-0 sm:p-0">
+            <DialogTitle className="text-lg sm:text-xl">
+              タスクを作成
+            </DialogTitle>
+            <DialogDescription className="sr-only sm:not-sr-only">
+              {STEP_LABELS[currentStep]}の入力内容を確認しながら進めてください。
+            </DialogDescription>
+          </DialogHeader>
 
-        <div className="space-y-4">
-          <div>
-            <Progress aria-label="進捗状況" value={progressValue} />
-            <div className="mt-2 flex flex-wrap items-center gap-2 text-muted-foreground text-xs">
-              {STEP_LABELS.map((label, index) => (
-                <span
-                  aria-current={index === currentStep}
-                  className={`rounded-full px-2 py-1 ${
-                    index === currentStep
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-muted"
-                  }`}
-                  key={label}
-                >
-                  {index + 1}. {label}
-                </span>
-              ))}
+          <div className="min-h-0 flex-1 overflow-y-auto">
+            <div className="space-y-4 p-4 pb-safe sm:space-y-6 sm:p-0">
+              <Stepper currentStep={currentStep} steps={STEP_LABELS} />
+
+              <Separator />
+
+              {currentStep === 0 ? <TaskDetailsStep form={form} /> : null}
+
+              {currentStep === 1 ? (
+                <ItemListStep
+                  errors={combinedErrors}
+                  items={items}
+                  onAdd={handleAddItem}
+                  onChange={(id, patch) => handleChangeItem(id, patch)}
+                  onRemove={handleRemoveItem}
+                  onSelect={selectItem}
+                  selectedItemId={selectedItemId}
+                />
+              ) : null}
+
+              {currentStep === 2 ? (
+                <PinPlacementStep
+                  areas={areas}
+                  editMode={pinEditMode}
+                  errors={combinedErrors}
+                  isLoadingAreas={isLoadingAreas}
+                  items={items}
+                  onEditModeChange={setPinEditMode}
+                  onPlacePin={handlePlacePin}
+                  onSelectArea={handleSelectArea}
+                  onSelectFloor={handleSelectFloor}
+                  onSelectItem={selectItem}
+                  selectedItem={selectedItem}
+                  selectedItemId={selectedItemId}
+                />
+              ) : null}
+
+              {errorMessage ? (
+                <p className="text-destructive text-sm" role="alert">
+                  {errorMessage}
+                </p>
+              ) : null}
             </div>
           </div>
 
-          <Separator />
-
-          {currentStep === 0 ? <TaskDetailsStep form={form} /> : null}
-
-          {currentStep === 1 ? (
-            <ItemListStep
-              errors={combinedErrors}
-              items={items}
-              onAdd={handleAddItem}
-              onChange={(id, patch) => handleChangeItem(id, patch)}
-              onRemove={handleRemoveItem}
-              onSelect={selectItem}
-              selectedItemId={selectedItemId}
-            />
-          ) : null}
-
-          {currentStep === 2 ? (
-            <PinPlacementStep
-              areas={areas}
-              editMode={pinEditMode}
-              errors={combinedErrors}
-              isLoadingAreas={isLoadingAreas}
-              items={items}
-              onEditModeChange={setPinEditMode}
-              onPlacePin={handlePlacePin}
-              onSelectArea={handleSelectArea}
-              onSelectFloor={handleSelectFloor}
-              onSelectItem={selectItem}
-              selectedItem={selectedItem}
-              selectedItemId={selectedItemId}
-            />
-          ) : null}
-
-          {errorMessage ? (
-            <p className="text-destructive text-sm" role="alert">
-              {errorMessage}
-            </p>
-          ) : null}
+          <DialogFooter className="shrink-0 border-t p-4 pb-safe sm:mt-6 sm:border-0 sm:p-0">
+            <div className="flex w-full gap-2 sm:w-auto sm:justify-end">
+              {currentStep > 0 ? (
+                <Button
+                  className="min-h-[44px] flex-1 sm:flex-initial"
+                  disabled={isSubmitting}
+                  onClick={handlePrevious}
+                  size="lg"
+                  type="button"
+                  variant="outline"
+                >
+                  戻る
+                </Button>
+              ) : (
+                <Button
+                  className="min-h-[44px] flex-1 sm:flex-initial"
+                  onClick={() => setOpen(false)}
+                  size="lg"
+                  type="button"
+                  variant="outline"
+                >
+                  キャンセル
+                </Button>
+              )}
+              <Button
+                className="min-h-[44px] flex-1 sm:flex-initial"
+                disabled={isSubmitting}
+                onClick={async () => {
+                  if (isLastStep) {
+                    await onSubmit();
+                    return;
+                  }
+                  await handleNext();
+                }}
+                size="lg"
+                type="button"
+              >
+                {primaryButtonLabel}
+              </Button>
+            </div>
+          </DialogFooter>
         </div>
-
-        <DialogFooter className="mt-6 gap-2 sm:space-x-0">
-          {currentStep > 0 ? (
-            <Button
-              disabled={isSubmitting}
-              onClick={handlePrevious}
-              type="button"
-              variant="ghost"
-            >
-              戻る
-            </Button>
-          ) : (
-            <Button
-              onClick={() => setOpen(false)}
-              type="button"
-              variant="ghost"
-            >
-              キャンセル
-            </Button>
-          )}
-          <Button
-            disabled={isSubmitting}
-            onClick={async () => {
-              if (isLastStep) {
-                await onSubmit();
-                return;
-              }
-              await handleNext();
-            }}
-            type="button"
-          >
-            {primaryButtonLabel}
-          </Button>
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

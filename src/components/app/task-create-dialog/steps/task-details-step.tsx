@@ -28,10 +28,13 @@ export function TaskDetailsStep({ form }: TaskDetailsStepProps) {
           name="title"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>タスク名</FormLabel>
+              <FormLabel>
+                タスク名 <span className="text-destructive">*</span>
+              </FormLabel>
               <FormControl>
                 <Input
                   autoComplete="off"
+                  className="min-h-[44px]"
                   placeholder="例: 体育館ステージ設営"
                   {...field}
                 />
@@ -45,11 +48,15 @@ export function TaskDetailsStep({ form }: TaskDetailsStepProps) {
           name="description"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>説明 (任意)</FormLabel>
+              <FormLabel>
+                説明{" "}
+                <span className="text-muted-foreground text-xs">(任意)</span>
+              </FormLabel>
               <FormControl>
                 <Textarea
-                  placeholder="タスクの概要や注意事項を入力してください"
-                  rows={4}
+                  className="min-h-[44px] resize-none"
+                  placeholder="タスクの概要や注意事項を入力"
+                  rows={3}
                   {...field}
                 />
               </FormControl>
@@ -62,10 +69,14 @@ export function TaskDetailsStep({ form }: TaskDetailsStepProps) {
           name="handler"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>担当者 (任意)</FormLabel>
+              <FormLabel>
+                担当者{" "}
+                <span className="text-muted-foreground text-xs">(任意)</span>
+              </FormLabel>
               <FormControl>
                 <Input
                   autoComplete="off"
+                  className="min-h-[44px]"
                   placeholder="例: 総務局 佐藤"
                   {...field}
                 />
