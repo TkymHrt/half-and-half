@@ -64,7 +64,13 @@ function renderListContent(
   }
 
   return (
-    <ScrollArea className="max-h-[32vh] pr-2 sm:max-h-[52vh] sm:pr-3">
+    <ScrollArea
+      className={cn(
+        "pr-2 sm:pr-3",
+        "[&_[data-slot=scroll-area-viewport]]:max-h-[32vh]",
+        "[&_[data-slot=scroll-area-viewport]]:sm:max-h-[52vh]"
+      )}
+    >
       <ul className="space-y-2 sm:space-y-3">
         {items.map((item) => {
           const isActive = item.id === selectedItemId;
