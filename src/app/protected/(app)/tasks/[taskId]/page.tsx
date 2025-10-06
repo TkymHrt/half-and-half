@@ -308,7 +308,6 @@ export default function TaskDetailPage({ params }: TaskDetailPageProps) {
     }
     return formatDate(task.createdAt);
   }, [task]);
-  const pageTitle = task ? task.title : "タスク詳細";
   const handlerLabel = task?.handler ?? "未設定";
   const showNotFound = useMemo(
     () => !isLoading && errorMessage === null && task === null,
@@ -336,9 +335,9 @@ export default function TaskDetailPage({ params }: TaskDetailPageProps) {
             <Link href="/protected/tasks">一覧に戻る</Link>
           </Button>
         }
-        title={pageTitle}
+        title={"タスク詳細"}
       />
-      <div className="flex flex-1 flex-col gap-6 px-4 py-4 sm:px-6">
+      <div className="flex flex-1 flex-col gap-4 px-4 py-4 sm:px-6">
         {isLoading ? <LoadingState /> : null}
 
         {errorMessage ? (
@@ -416,29 +415,64 @@ function TaskSummaryCard({
   statusError,
   onStatusChange,
 }: TaskSummaryCardProps) {
+  const statusBadgeClass = getTaskStatusBadgeClass(task.status);
+
   return (
-    <Card>
-      <CardHeader className="pb-2">
-        <CardTitle className="text-base">タスク情報</CardTitle>
-        <CardDescription>
-          担当者や進捗、概要など基本情報を確認できます。
-        </CardDescription>
+    <Card className="gap-1">
+      <CardHeader>
+        <CardTitle className="text-base">{task.title}</CardTitle>
       </CardHeader>
-      <CardContent>
-        <div className="flex flex-wrap items-center gap-3">
-          <Badge
-            className={cn("text-xs", getTaskStatusBadgeClass(task.status))}
-            variant="outline"
-          >
+      <CardContent className="flex flex-col gap-6">
+        <section className="flex flex-col gap-3 rounded-lg">
+          <Badge className={cn("text-xs", statusBadgeClass)} variant="outline">
             {getTaskStatusLabel(task.status)}
           </Badge>
-          <span className="text-muted-foreground text-sm">
-            タスク ID: {task.id}
-          </span>
-        </div>
-        <div className="mt-4 flex flex-col gap-2 sm:max-w-[240px]">
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="rounded-md bg-background/70 p-3 shadow-sm">
+              <p
+                className={cn(
+                  "font-medium",
+                  "text-[11px]",
+                  "text-muted-foreground/80",
+                  "tracking-wide",
+                  "uppercase"
+                )}
+              >
+                担当
+              </p>
+              <p
+                className={cn(
+                  "mt-1",
+                  "text-foreground",
+                  "text-sm",
+                  "font-semibold"
+                )}
+              >
+                {handlerLabel}
+              </p>
+            </div>
+            <div className="rounded-md bg-background/70 p-3 shadow-sm">
+              <p
+                className={cn(
+                  "font-medium",
+                  "text-[11px]",
+                  "text-muted-foreground/80",
+                  "tracking-wide",
+                  "uppercase"
+                )}
+              >
+                作成日時
+              </p>
+              <p className={cn("mt-1", "text-foreground", "text-sm")}>
+                {createdAtLabel ?? "-"}
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section className="flex flex-col gap-2">
           <Label
-            className="text-muted-foreground text-xs"
+            className={cn("text-muted-foreground", "text-xs", "font-medium")}
             htmlFor={statusSelectId}
           >
             ステータスを変更
@@ -448,7 +482,10 @@ function TaskSummaryCard({
             onValueChange={(value) => onStatusChange(value as TaskStatus)}
             value={task.status}
           >
-            <SelectTrigger id={statusSelectId}>
+            <SelectTrigger
+              className="w-full sm:max-w-[260px]"
+              id={statusSelectId}
+            >
               <SelectValue placeholder="ステータスを選択" />
             </SelectTrigger>
             <SelectContent>
@@ -458,34 +495,31 @@ function TaskSummaryCard({
             </SelectContent>
           </Select>
           {isStatusUpdating ? (
-            <span className="text-muted-foreground text-xs">更新中...</span>
+            <span className={cn("text-muted-foreground", "text-xs")}>
+              更新中...
+            </span>
           ) : null}
           {statusError ? (
-            <p className="text-destructive text-xs" role="alert">
+            <p className={cn("text-destructive", "text-xs")} role="alert">
               {statusError}
             </p>
           ) : null}
-        </div>
-        <dl className="mt-4 grid gap-3 sm:grid-cols-2">
-          <div>
-            <dt className="text-muted-foreground text-xs">担当者</dt>
-            <dd className="mt-1 font-medium text-foreground text-sm">
-              {handlerLabel}
-            </dd>
-          </div>
-          <div>
-            <dt className="text-muted-foreground text-xs">作成日時</dt>
-            <dd className="mt-1 text-muted-foreground text-sm">
-              {createdAtLabel ?? "-"}
-            </dd>
-          </div>
-          <div className="sm:col-span-2">
-            <dt className="text-muted-foreground text-xs">概要</dt>
-            <dd className="mt-1 text-muted-foreground text-sm leading-relaxed">
-              {task.description ?? "説明は設定されていません。"}
-            </dd>
-          </div>
-        </dl>
+        </section>
+
+        <section className="flex flex-col gap-2">
+          <h3 className={cn("text-foreground", "text-sm", "font-semibold")}>
+            概要
+          </h3>
+          <p
+            className={cn(
+              "leading-relaxed",
+              "text-muted-foreground",
+              "text-sm"
+            )}
+          >
+            {task.description ?? "説明は設定されていません。"}
+          </p>
+        </section>
       </CardContent>
     </Card>
   );
@@ -515,9 +549,50 @@ function TaskItemsCard({
       <CardHeader className="pb-2">
         <CardTitle className="text-base">関連する物品</CardTitle>
         <CardDescription>
-          {items.length} 件 / 合計数量 {itemQuantityTotal} ・ 未配置{" "}
-          {itemStatusCount.unplaced} / 移動中 {itemStatusCount.moving} /
-          配置済み {itemStatusCount.placed} / 問題あり {itemStatusCount.issue}
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="text-muted-foreground text-sm">
+              物品数: {items.length} 件 / 合計数量: {itemQuantityTotal}
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              <Badge
+                className={cn("text-xs", ITEM_STATUS_BADGE_CLASS.unplaced)}
+                variant="outline"
+              >
+                未配置
+                <span className="ml-1 font-semibold">
+                  {itemStatusCount.unplaced}
+                </span>
+              </Badge>
+              <Badge
+                className={cn("text-xs", ITEM_STATUS_BADGE_CLASS.moving)}
+                variant="outline"
+              >
+                移動中
+                <span className="ml-1 font-semibold">
+                  {itemStatusCount.moving}
+                </span>
+              </Badge>
+              <Badge
+                className={cn("text-xs", ITEM_STATUS_BADGE_CLASS.placed)}
+                variant="outline"
+              >
+                配置済み
+                <span className="ml-1 font-semibold">
+                  {itemStatusCount.placed}
+                </span>
+              </Badge>
+              <Badge
+                className={cn("text-xs", ITEM_STATUS_BADGE_CLASS.issue)}
+                variant="outline"
+              >
+                問題あり
+                <span className="ml-1 font-semibold">
+                  {itemStatusCount.issue}
+                </span>
+              </Badge>
+            </div>
+          </div>
         </CardDescription>
       </CardHeader>
       <CardContent>
