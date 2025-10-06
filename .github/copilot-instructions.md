@@ -11,10 +11,6 @@ Ultracite enforces strict type safety, accessibility standards, and consistent c
 - Maximum type safety
 - AI-friendly code generation
 
-## Before Writing Code
-1. Review the product docs in `doc/system-design.md` and `doc/mvp.md`, then plan work against the checklist in `doc/task.md`
-2. As you complete a task, check or uncheck relevant items in `doc/task.md` as you progress so the AI ​​Assistant can track your status.
-
 ## Rules
 
 ### Accessibility (a11y)

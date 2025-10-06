@@ -1,7 +1,8 @@
 @import "tailwindcss";
+@import "leaflet/dist/leaflet.css";
 @import "tw-animate-css";
 
-/* biome-ignore lint/suspicious/noUnknownAtRules: <Initial state> */
+/* biome-ignore lint/suspicious/noUnknownAtRules: Tailwind custom variant */
 @custom-variant dark (&:is(.dark *));
 
 :root {
@@ -75,7 +76,7 @@
   --sidebar-ring: oklch(0.439 0 0);
 }
 
-/* biome-ignore lint/suspicious/noUnknownAtRules: <Initial state> */
+/* biome-ignore lint/suspicious/noUnknownAtRules: Tailwind inline theme variables */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -117,11 +118,11 @@
 
 @layer base {
   * {
-    /* biome-ignore lint/suspicious/noUnknownAtRules: <Initial state> */
+    /* biome-ignore lint/suspicious/noUnknownAtRules: Tailwind apply helper */
     @apply border-border outline-ring/50;
   }
   body {
-    /* biome-ignore lint/suspicious/noUnknownAtRules: <Initial state> */
+    /* biome-ignore lint/suspicious/noUnknownAtRules: Tailwind apply helper */
     @apply bg-background text-foreground;
   }
 }
