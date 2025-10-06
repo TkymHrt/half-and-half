@@ -124,7 +124,7 @@ export function MapItemList({
   isLoading,
   onSelectItem,
 }: MapItemListProps) {
-  const [isExpanded, setIsExpanded] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   const itemCount = items.length;
 
