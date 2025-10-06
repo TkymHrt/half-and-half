@@ -16,21 +16,6 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { ensureSeed } from "@/lib/mock";
 import { ItemRepository } from "@/lib/mock/repositories/items";
 import { TaskRepository } from "@/lib/mock/repositories/tasks";
@@ -43,13 +28,6 @@ import {
 } from "@/lib/presentation/status";
 import { cn } from "@/lib/utils";
 import type { Item, ItemStatus, LogEvent, Task, TaskStatus } from "@/types/app";
-
-function getTaskStatusCount(
-  source: Map<TaskStatus, number>,
-  status: TaskStatus
-): number {
-  return source.get(status) ?? 0;
-}
 
 type StatusFilter = TaskStatus | "all";
 
@@ -199,34 +177,15 @@ export default function TasksPage() {
     return result;
   }, [filteredTasks, items]);
 
-  const summary = useMemo(() => {
-    const taskStatusCount = new Map<TaskStatus, number>([
-      ["done", 0],
-      ["in_progress", 0],
-      ["not_started", 0],
-    ]);
-
-    for (const task of tasks) {
-      const current = taskStatusCount.get(task.status) ?? 0;
-      taskStatusCount.set(task.status, current + 1);
-    }
-
-    const itemStatusCount = createEmptyItemStatusCount();
-    let itemQuantityTotal = 0;
-
-    for (const item of items) {
-      itemStatusCount[item.status] += 1;
-      itemQuantityTotal += item.quantity;
-    }
-
-    return {
-      totalTasks: tasks.length,
-      taskStatusCount,
-      totalItems: items.length,
-      itemStatusCount,
-      itemQuantityTotal,
-    };
-  }, [items, tasks]);
+  const statusFilterOptions = useMemo(
+    () => [
+      { value: "all" as StatusFilter, label: "すべて" },
+      { value: "not_started" as StatusFilter, label: "未着手" },
+      { value: "in_progress" as StatusFilter, label: "進行中" },
+      { value: "done" as StatusFilter, label: "完了" },
+    ],
+    []
+  );
 
   const hasTasks = rows.length > 0;
   const isEmptyState = !isLoading && hasTasks === false;
@@ -258,164 +217,68 @@ export default function TasksPage() {
         description="タスクと物品を管理します"
         title="タスク一覧"
       />
-      <div className="flex flex-1 flex-col gap-6 px-4 py-4 sm:px-6">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base">全体サマリー</CardTitle>
-            <CardDescription>
-              タスクと物品の状況をステータスごとに集計しています。
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <dl className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              <div className="rounded-lg border bg-card px-3 py-3">
-                <dt className="text-muted-foreground text-xs">
-                  登録済みタスク
-                </dt>
-                <dd
-                  className={cn(
-                    "mt-1",
-                    "font-semibold",
-                    "text-2xl",
-                    "text-foreground"
-                  )}
-                >
-                  {summary.totalTasks}
-                </dd>
-                <p
-                  className={cn("mt-2", "text-xs", "text-muted-foreground/90")}
-                >
-                  未着手{" "}
-                  {getTaskStatusCount(summary.taskStatusCount, "not_started")} /
-                  進行中{" "}
-                  {getTaskStatusCount(summary.taskStatusCount, "in_progress")} /
-                  完了 {getTaskStatusCount(summary.taskStatusCount, "done")}
-                </p>
-              </div>
-              <div className="rounded-lg border bg-card px-3 py-3">
-                <dt className="text-muted-foreground text-xs">物品の総数</dt>
-                <dd
-                  className={cn(
-                    "mt-1",
-                    "font-semibold",
-                    "text-2xl",
-                    "text-foreground"
-                  )}
-                >
-                  {summary.totalItems}
-                </dd>
-                <p
-                  className={cn("mt-2", "text-xs", "text-muted-foreground/90")}
-                >
-                  合計数量 {summary.itemQuantityTotal}
-                </p>
-              </div>
-              <div className="rounded-lg border bg-card px-3 py-3">
-                <dt className="text-muted-foreground text-xs">配置済み</dt>
-                <dd
-                  className={cn(
-                    "mt-1",
-                    "font-semibold",
-                    "text-2xl",
-                    "text-foreground"
-                  )}
-                >
-                  {summary.itemStatusCount.placed}
-                </dd>
-                <p
-                  className={cn("mt-2", "text-xs", "text-muted-foreground/90")}
-                >
-                  完了した物品の数
-                </p>
-              </div>
-              <div className="rounded-lg border bg-card px-3 py-3">
-                <dt className="text-muted-foreground text-xs">対応が必要</dt>
-                <dd
-                  className={cn(
-                    "mt-1",
-                    "font-semibold",
-                    "text-2xl",
-                    "text-destructive"
-                  )}
-                >
-                  {summary.itemStatusCount.issue}
-                </dd>
-                <p
-                  className={cn("mt-2", "text-xs", "text-muted-foreground/90")}
-                >
-                  問題報告が紐づいている物品
-                </p>
-              </div>
-            </dl>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
+      <div className="flex flex-1 flex-col gap-5 px-4 py-4 sm:px-6">
+        <Card className="gap-0">
+          <CardHeader className="gap-1 pb-3">
             <CardTitle className="text-base">タスクを探す</CardTitle>
-            <CardDescription>
-              タイトルや担当者、ステータスで絞り込みができます。
-            </CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="grid gap-3 sm:grid-cols-[1fr_minmax(0,220px)]">
-              <div className="flex flex-col gap-2">
-                <Label
-                  className={cn("text-xs", "text-muted-foreground")}
-                  htmlFor="task-search"
-                >
-                  キーワード検索
-                </Label>
-                <Input
-                  autoComplete="off"
-                  id="task-search"
-                  onChange={(event) => setSearchTerm(event.target.value)}
-                  placeholder="タスク名または担当者を入力"
-                  value={searchTerm}
-                />
-              </div>
-              <div className="flex flex-col gap-2">
-                <Label
-                  className={cn("text-xs", "text-muted-foreground")}
-                  htmlFor="task-status-filter"
-                >
-                  ステータス
-                </Label>
-                <Select
-                  onValueChange={(value) => {
-                    setStatusFilter((value || "all") as StatusFilter);
-                  }}
-                  value={statusFilter}
-                >
-                  <SelectTrigger id="task-status-filter">
-                    <SelectValue placeholder="ステータスを選択" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">すべて</SelectItem>
-                    <SelectItem value="not_started">未着手</SelectItem>
-                    <SelectItem value="in_progress">進行中</SelectItem>
-                    <SelectItem value="done">完了</SelectItem>
-                  </SelectContent>
-                </Select>
+          <CardContent className="flex flex-col gap-4">
+            <div className="flex flex-col gap-2">
+              <Label
+                className={cn("text-xs", "text-muted-foreground")}
+                htmlFor="task-search"
+              >
+                キーワード検索
+              </Label>
+              <Input
+                autoComplete="off"
+                id="task-search"
+                onChange={(event) => setSearchTerm(event.target.value)}
+                placeholder="タスク名または担当者を入力"
+                value={searchTerm}
+              />
+            </div>
+            <div className="flex flex-col gap-2">
+              <p className={cn("text-xs", "text-muted-foreground")}>
+                ステータス
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {statusFilterOptions.map((option) => (
+                  <Button
+                    aria-pressed={statusFilter === option.value}
+                    className="rounded-full px-3 text-xs"
+                    key={option.value}
+                    onClick={() => setStatusFilter(option.value)}
+                    size="sm"
+                    type="button"
+                    variant={
+                      statusFilter === option.value ? "default" : "outline"
+                    }
+                  >
+                    {option.label}
+                  </Button>
+                ))}
               </div>
             </div>
             {errorMessage ? (
-              <p className="mt-3 text-destructive text-sm">{errorMessage}</p>
+              <p className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-destructive text-sm">
+                {errorMessage}
+              </p>
             ) : null}
           </CardContent>
         </Card>
 
-        <Card className="flex-1">
-          <CardHeader className="pb-2">
+        <Card className="flex-1 gap-0">
+          <CardHeader className="gap-1 pb-3">
             <CardTitle className="text-base">タスク一覧</CardTitle>
             <CardDescription>{listDescription}</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="flex flex-col gap-4">
             {isLoading ? (
               <div className="space-y-3">
-                <div className="h-16 animate-pulse rounded-md bg-muted/60" />
-                <div className="h-16 animate-pulse rounded-md bg-muted/60" />
-                <div className="h-16 animate-pulse rounded-md bg-muted/60" />
+                <div className="h-20 animate-pulse rounded-lg bg-muted/60" />
+                <div className="h-20 animate-pulse rounded-lg bg-muted/60" />
+                <div className="h-20 animate-pulse rounded-lg bg-muted/60" />
               </div>
             ) : null}
 
@@ -426,92 +289,110 @@ export default function TasksPage() {
             ) : null}
 
             {hasTasks ? (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead scope="col">タスク</TableHead>
-                    <TableHead scope="col">担当</TableHead>
-                    <TableHead scope="col">物品</TableHead>
-                    <TableHead scope="col">ステータス</TableHead>
-                    <TableHead scope="col">作成日時</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {rows.map((row) => {
-                    const statusClass = getTaskStatusBadgeClass(
-                      row.task.status
-                    );
-                    const itemSummaryParts: string[] = [];
+              <ul className="flex flex-col gap-3">
+                {rows.map((row) => {
+                  const statusClass = getTaskStatusBadgeClass(row.task.status);
+                  const itemStatusSummary = ITEM_STATUS_ORDER.map((status) => ({
+                    status,
+                    count: row.statusCounts[status],
+                  })).filter((entry) => entry.count > 0);
 
-                    for (const status of ITEM_STATUS_ORDER) {
-                      const count = row.statusCounts[status];
-                      if (count > 0) {
-                        itemSummaryParts.push(
-                          `${getItemStatusLabel(status)} ${count}`
-                        );
-                      }
-                    }
-
-                    const itemSummary = itemSummaryParts.join(" / ");
-
-                    return (
-                      <TableRow className="align-top" key={row.task.id}>
-                        <TableCell>
-                          <div className="flex flex-col gap-1">
-                            <Link
-                              className="font-semibold text-foreground hover:underline"
-                              href={`/protected/tasks/${encodeURIComponent(row.task.id)}`}
-                            >
-                              {row.task.title}
-                            </Link>
-                            {row.task.description ? (
-                              <p
-                                className={cn(
-                                  "line-clamp-2",
-                                  "text-xs",
-                                  "text-muted-foreground/90"
-                                )}
-                              >
-                                {row.task.description}
-                              </p>
-                            ) : null}
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-muted-foreground text-sm">
-                          {row.task.handler ?? "未設定"}
-                        </TableCell>
-                        <TableCell>
-                          <div className={cn("text-foreground", "text-sm")}>
-                            <div className="font-medium">
-                              物品 {row.items.length} 件 / 数量{" "}
-                              {row.quantityTotal}
-                            </div>
-                            <p
+                  return (
+                    <li key={row.task.id}>
+                      <Link
+                        className="group block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                        href={`/protected/tasks/${encodeURIComponent(row.task.id)}`}
+                      >
+                        <article className="rounded-lg border bg-card p-4 shadow-sm transition-colors group-hover:border-primary/60 group-focus-visible:border-primary/70">
+                          <div className="flex flex-wrap items-start justify-between gap-2">
+                            <h3
                               className={cn(
-                                "text-xs",
-                                "text-muted-foreground/90"
+                                "text-base",
+                                "font-semibold",
+                                "leading-tight",
+                                "text-foreground"
                               )}
                             >
-                              {itemSummary || "内訳なし"}
-                            </p>
+                              {row.task.title}
+                            </h3>
+                            <Badge
+                              className={cn("text-xs", statusClass)}
+                              variant="outline"
+                            >
+                              {getTaskStatusLabel(row.task.status)}
+                            </Badge>
                           </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge
-                            className={cn("text-xs", statusClass)}
-                            variant="outline"
+                          {row.task.description ? (
+                            <p
+                              className={cn(
+                                "mt-1",
+                                "line-clamp-2",
+                                "text-sm",
+                                "text-muted-foreground"
+                              )}
+                            >
+                              {row.task.description}
+                            </p>
+                          ) : null}
+                          <div
+                            className={cn(
+                              "mt-3",
+                              "grid",
+                              "gap-3",
+                              "text-xs",
+                              "text-muted-foreground",
+                              "sm:grid-cols-2"
+                            )}
                           >
-                            {getTaskStatusLabel(row.task.status)}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-muted-foreground text-xs">
-                          {formatDate(row.task.createdAt)}
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
+                            <div className="flex flex-col gap-1">
+                              <span className="font-medium text-foreground/80">
+                                担当
+                              </span>
+                              <span>{row.task.handler ?? "未設定"}</span>
+                            </div>
+                            <div className="flex flex-col gap-1">
+                              <span className="font-medium text-foreground/80">
+                                作成日時
+                              </span>
+                              <time dateTime={row.task.createdAt}>
+                                {formatDate(row.task.createdAt)}
+                              </time>
+                            </div>
+                          </div>
+                          <div className="mt-3 flex flex-col gap-2">
+                            <p className={cn("text-foreground", "text-sm")}>
+                              物品 {row.items.length} 件 / 数量{" "}
+                              {row.quantityTotal}
+                            </p>
+                            <div className="flex flex-wrap gap-2">
+                              {itemStatusSummary.length > 0 ? (
+                                itemStatusSummary.map(({ status, count }) => (
+                                  <Badge
+                                    className="text-nowrap text-[11px]"
+                                    key={status}
+                                    variant="secondary"
+                                  >
+                                    {getItemStatusLabel(status)} {count}
+                                  </Badge>
+                                ))
+                              ) : (
+                                <span
+                                  className={cn(
+                                    "text-muted-foreground",
+                                    "text-xs"
+                                  )}
+                                >
+                                  内訳なし
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </article>
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
             ) : null}
           </CardContent>
         </Card>

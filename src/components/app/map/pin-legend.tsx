@@ -30,9 +30,9 @@ export function PinLegend() {
   return (
     <section
       aria-label="マップの凡例"
-      className="text-muted-foreground text-sm"
+      className="inline-flex flex-col items-center text-muted-foreground text-sm"
     >
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap items-center justify-center gap-3">
         {Object.entries(STATUS_META).map(([status, meta]) => (
           <div className="flex items-center gap-1.5" key={status}>
             <span

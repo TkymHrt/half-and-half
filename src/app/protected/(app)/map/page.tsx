@@ -464,12 +464,12 @@ export default function MapPage() {
               statusFilterLabel={statusFilterLabel}
             />
           </div>
+        </div>
+      </div>
 
-          <div className="pointer-events-auto absolute right-2 bottom-20 left-2 sm:right-4 sm:bottom-20 sm:left-4">
-            <div className="rounded-xl border border-border/60 bg-background/95 p-3 shadow-lg backdrop-blur sm:rounded-2xl sm:p-4">
-              <PinLegend />
-            </div>
-          </div>
+      <div className="pointer-events-none fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom,0px)+5rem)] z-30 flex justify-center px-4">
+        <div className="pointer-events-auto rounded-2xl border border-border/60 bg-background/95 px-4 py-3 shadow-lg backdrop-blur">
+          <PinLegend />
         </div>
       </div>
 
