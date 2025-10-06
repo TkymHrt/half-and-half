@@ -388,10 +388,7 @@ export default function HomePage() {
 
   return (
     <>
-      <AppHeader
-        description="プロジェクト全体の現状をひと目で確認できます"
-        title="ホーム"
-      />
+      <AppHeader title="ホーム" />
       <div className="flex flex-1 flex-col gap-6 px-4 py-4 sm:px-6">
         {errorMessage ? (
           <Alert variant="destructive">

@@ -214,7 +214,6 @@ export default function TasksPage() {
             }
           />
         }
-        description="タスクと物品を管理します"
         title="タスク一覧"
       />
       <div className="flex flex-1 flex-col gap-5 px-4 py-4 sm:px-6">

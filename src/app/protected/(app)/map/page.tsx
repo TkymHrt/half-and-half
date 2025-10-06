@@ -395,7 +395,7 @@ export default function MapPage() {
 
   return (
     <>
-      <AppHeader description="構内図と物品の配置状況を確認" title="マップ" />
+      <AppHeader title="マップ" />
 
       <div className="relative flex-1">
         <p className="sr-only" id={mapInstructionsId}>

@@ -1228,7 +1228,6 @@ export default function LogsPage() {
             問題を報告
           </Button>
         }
-        description="作業履歴や問題報告の閲覧・登録"
         title="ログ"
       />
 

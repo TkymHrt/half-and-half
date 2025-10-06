@@ -29,7 +29,7 @@ export function AppHeader({
       )}
     >
       <div className="mx-auto flex w-full max-w-5xl flex-col gap-3 px-4 py-3 sm:px-6">
-        <div className="flex items-start justify-between gap-3">
+        <div className="flex items-center justify-between gap-3">
           <div className="min-w-0">
             <h1
               aria-live="polite"

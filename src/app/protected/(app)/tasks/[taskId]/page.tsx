@@ -329,7 +329,6 @@ export default function TaskDetailPage({ params }: TaskDetailPageProps) {
   return (
     <>
       <AppHeader
-        description="タスクの概要と関連物品の進捗"
         secondaryAction={
           <Button asChild size="sm" type="button" variant="outline">
             <Link href="/protected/tasks">一覧に戻る</Link>
