@@ -68,6 +68,16 @@ export const ItemRepository = {
     await writeJson(STORAGE_KEY, next);
     return updated;
   },
+  async delete(id: EntityId): Promise<boolean> {
+    await delay();
+    const data = (await readJson<Item[]>(STORAGE_KEY)) ?? [];
+    const filtered = data.filter((item) => item.id !== id);
+    if (filtered.length === data.length) {
+      return false;
+    }
+    await writeJson(STORAGE_KEY, filtered);
+    return true;
+  },
 };
 
 export const ITEMS_STORAGE_KEY = STORAGE_KEY;

@@ -56,9 +56,13 @@ export type LogEvent = {
   actor: string;
   type:
     | "task_created"
+    | "task_updated"
     | "task_status_changed"
+    | "task_deleted"
     | "item_added"
+    | "item_updated"
     | "item_status_changed"
+    | "item_deleted"
     | "issue_reported"
     | "issue_status_changed"
     | "item_photo_uploaded";

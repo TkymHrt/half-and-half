@@ -326,3 +326,246 @@ export async function updateTaskStatusWithLog(
     log,
   } satisfies UpdateTaskStatusResult;
 }
+
+export type UpdateTaskInput = {
+  task: Task;
+  title?: string;
+  description?: string | null;
+  handler?: string | null;
+  actor?: string;
+};
+
+export type UpdateTaskResult = {
+  task: Task;
+  log: LogEvent;
+};
+
+export async function updateTaskWithLog(
+  input: UpdateTaskInput
+): Promise<UpdateTaskResult> {
+  const actor = resolveActor(input.actor ?? input.task.handler);
+  const changes: Partial<Task> = {};
+
+  if (input.title !== undefined) {
+    changes.title = input.title;
+  }
+  if (input.description !== undefined) {
+    changes.description = input.description ?? undefined;
+  }
+  if (input.handler !== undefined) {
+    changes.handler = input.handler ?? undefined;
+  }
+
+  const updatedTask = await TaskRepository.update(input.task.id, changes);
+
+  if (!updatedTask) {
+    throw new Error("TASK_UPDATE_FAILED");
+  }
+
+  const log: LogEvent = {
+    id: generateLogId(),
+    at: new Date().toISOString(),
+    actor,
+    type: "task_updated",
+    payload: {
+      taskId: updatedTask.id,
+      changes,
+    },
+  } satisfies LogEvent;
+
+  await LogRepository.add(log);
+
+  return {
+    task: updatedTask,
+    log,
+  } satisfies UpdateTaskResult;
+}
+
+export type UpdateItemInput = {
+  item: Item;
+  name?: string;
+  quantity?: number;
+  sourceName?: string;
+  targetName?: string;
+  handler?: string | null;
+  pin?: Item["pin"];
+  actor?: string;
+};
+
+export type UpdateItemResult = {
+  item: Item;
+  log: LogEvent;
+};
+
+export async function updateItemWithLog(
+  input: UpdateItemInput
+): Promise<UpdateItemResult> {
+  const actor = resolveActor(input.actor ?? input.item.handler);
+  const changes: Partial<Item> = {};
+
+  if (input.name !== undefined) {
+    changes.name = input.name;
+  }
+  if (input.quantity !== undefined) {
+    changes.quantity = input.quantity;
+  }
+  if (input.sourceName !== undefined) {
+    changes.sourceName = input.sourceName;
+  }
+  if (input.targetName !== undefined) {
+    changes.targetName = input.targetName;
+  }
+  if (input.handler !== undefined) {
+    changes.handler = input.handler ?? undefined;
+  }
+  if (input.pin !== undefined) {
+    changes.pin = input.pin;
+  }
+
+  const updatedItem = await ItemRepository.update(input.item.id, changes);
+
+  if (!updatedItem) {
+    throw new Error("ITEM_UPDATE_FAILED");
+  }
+
+  const log: LogEvent = {
+    id: generateLogId(),
+    at: new Date().toISOString(),
+    actor,
+    type: "item_updated",
+    payload: {
+      itemId: updatedItem.id,
+      taskId: input.item.taskId,
+      changes,
+    },
+  } satisfies LogEvent;
+
+  await LogRepository.add(log);
+
+  return {
+    item: updatedItem,
+    log,
+  } satisfies UpdateItemResult;
+}
+
+export type DeleteItemInput = {
+  item: Item;
+  items: Item[];
+  taskId: EntityId;
+  actor?: string;
+};
+
+export type DeleteItemResult = {
+  itemId: EntityId;
+  items: Item[];
+  task: Task | null;
+  taskStatus: TaskStatus;
+  log: LogEvent;
+};
+
+export async function deleteItemWithLog(
+  input: DeleteItemInput
+): Promise<DeleteItemResult> {
+  const actor = resolveActor(input.actor ?? input.item.handler);
+
+  // 写真を削除
+  if (input.item.photoIds?.length) {
+    for (const photoId of input.item.photoIds) {
+      await PhotoRepository.delete(photoId);
+    }
+  }
+
+  // アイテムを削除
+  await ItemRepository.delete(input.item.id);
+
+  // タスクのitemIdsを更新
+  const task = await TaskRepository.get(input.taskId);
+  if (task) {
+    const updatedItemIds = task.itemIds.filter(
+      (id: EntityId) => id !== input.item.id
+    );
+    await TaskRepository.update(input.taskId, { itemIds: updatedItemIds });
+  }
+
+  // 残りのアイテムでタスクステータスを再計算
+  const remainingItems = input.items.filter((i) => i.id !== input.item.id);
+  const derivedStatus = deriveTaskStatusFromItems(remainingItems);
+  const updatedTask =
+    (await TaskRepository.update(input.taskId, {
+      status: derivedStatus,
+    })) ?? null;
+
+  const log: LogEvent = {
+    id: generateLogId(),
+    at: new Date().toISOString(),
+    actor,
+    type: "item_deleted",
+    payload: {
+      itemId: input.item.id,
+      taskId: input.taskId,
+      name: input.item.name,
+      quantity: input.item.quantity,
+    },
+  } satisfies LogEvent;
+
+  await LogRepository.add(log);
+
+  return {
+    itemId: input.item.id,
+    items: remainingItems,
+    task: updatedTask,
+    taskStatus: derivedStatus,
+    log,
+  };
+}
+
+export type DeleteTaskInput = {
+  task: Task;
+  actor?: string;
+};
+
+export type DeleteTaskResult = {
+  taskId: EntityId;
+  log: LogEvent;
+};
+
+export async function deleteTaskWithLog(
+  input: DeleteTaskInput
+): Promise<DeleteTaskResult> {
+  const actor = resolveActor(input.actor ?? input.task.handler);
+
+  // タスクに紐づくアイテムを取得
+  const items = await ItemRepository.list({ taskId: input.task.id });
+
+  // 各アイテムの写真とアイテム自体を削除
+  for (const item of items) {
+    if (item.photoIds?.length) {
+      for (const photoId of item.photoIds) {
+        await PhotoRepository.delete(photoId);
+      }
+    }
+    await ItemRepository.delete(item.id);
+  }
+
+  // タスクを削除
+  await TaskRepository.delete(input.task.id);
+
+  const log: LogEvent = {
+    id: generateLogId(),
+    at: new Date().toISOString(),
+    actor,
+    type: "task_deleted",
+    payload: {
+      taskId: input.task.id,
+      title: input.task.title,
+      itemCount: items.length,
+    },
+  } satisfies LogEvent;
+
+  await LogRepository.add(log);
+
+  return {
+    taskId: input.task.id,
+    log,
+  };
+}

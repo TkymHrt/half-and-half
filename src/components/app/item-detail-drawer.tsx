@@ -6,7 +6,7 @@ import { useCallback, useEffect, useId, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { ItemStatusSelect } from "@/components/app/item-status-select";
-import { addItemPhoto } from "@/lib/application/activity";
+import { addItemPhoto, deleteItemWithLog } from "@/lib/application/activity";
 import { PhotoRepository } from "@/lib/mock/repositories/photos";
 import {
   createMapHref,
@@ -16,6 +16,16 @@ import { getItemStatusLabel } from "@/lib/presentation/status";
 import { cn } from "@/lib/utils";
 import type { Item, ItemPhoto, ItemStatus } from "@/types/app";
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "../ui/alert-dialog";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import {
@@ -42,8 +52,11 @@ export type ItemDetailDrawerProps = {
   onOpenChange: (open: boolean) => void;
   onChangeStatus: (item: Item, status: ItemStatus) => void;
   onItemUpdated: (item: Item) => void;
+  onItemDeleted?: (itemId: string) => void;
   actor?: string | null;
   isStatusUpdating: boolean;
+  items?: Item[];
+  taskId?: string;
 };
 
 type MapLinks = {
@@ -62,8 +75,11 @@ export function ItemDetailDrawer({
   onOpenChange,
   onChangeStatus,
   onItemUpdated,
+  onItemDeleted,
   actor,
   isStatusUpdating,
+  items,
+  taskId,
 }: ItemDetailDrawerProps) {
   const inputId = useId();
   const {
@@ -74,6 +90,8 @@ export function ItemDetailDrawer({
     isLoadingPhotos,
   } = useItemPhotoPreviews(item, open);
   const [isUploading, setIsUploading] = useState(false);
+  const [isDeleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [isDeleting, setDeleting] = useState(false);
 
   const handleFileChange = useCallback(
     async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -136,53 +154,130 @@ export function ItemDetailDrawer({
 
   const badgeClass = item ? ITEM_STATUS_BADGE_CLASS[item.status] : undefined;
 
+  const handleDeleteItem = useCallback(async () => {
+    if (!item) {
+      return;
+    }
+
+    if (!items) {
+      return;
+    }
+
+    if (!taskId) {
+      return;
+    }
+
+    if (!onItemDeleted) {
+      return;
+    }
+
+    setDeleting(true);
+
+    try {
+      await deleteItemWithLog({
+        item,
+        items,
+        taskId,
+        actor: actor ?? undefined,
+      });
+      toast.success("物品を削除しました");
+      onItemDeleted(item.id);
+      onOpenChange(false);
+    } catch {
+      toast.error("物品の削除に失敗しました");
+      setDeleting(false);
+    }
+  }, [item, items, taskId, onItemDeleted, actor, onOpenChange]);
+
   return (
-    <Drawer onOpenChange={onOpenChange} open={open}>
-      <DrawerContent className="p-0">
-        <DrawerHeader className="px-4">
-          <DrawerTitle>{item ? item.name : "物品詳細"}</DrawerTitle>
-          <DrawerDescription>
-            {item
-              ? `数量 ${item.quantity} / 担当 ${item.handler ?? "未設定"}`
-              : "詳細情報を表示します"}
-          </DrawerDescription>
-        </DrawerHeader>
+    <>
+      <Drawer onOpenChange={onOpenChange} open={open}>
+        <DrawerContent className="p-0">
+          <DrawerHeader className="px-4">
+            <DrawerTitle>{item ? item.name : "物品詳細"}</DrawerTitle>
+            <DrawerDescription>
+              {item
+                ? `数量 ${item.quantity} / 担当 ${item.handler ?? "未設定"}`
+                : "詳細情報を表示します"}
+            </DrawerDescription>
+          </DrawerHeader>
 
-        <Separator />
+          <Separator />
 
-        <div className="space-y-6 px-4 py-4">
-          <ItemSummarySection
-            badgeClass={badgeClass ?? ""}
-            isStatusUpdating={isStatusUpdating}
-            item={item}
-            mapLinks={mapLinks}
-            onChangeStatus={onChangeStatus}
-          />
+          <div className="space-y-6 px-4 py-4">
+            <ItemSummarySection
+              badgeClass={badgeClass ?? ""}
+              isStatusUpdating={isStatusUpdating}
+              item={item}
+              mapLinks={mapLinks}
+              onChangeStatus={onChangeStatus}
+            />
 
-          <PhotoUploadSection
-            disabled={isUploading || !item}
-            errorMessage={photoError}
-            inputId={inputId}
-            isUploading={isUploading}
-            onChange={handleFileChange}
-          />
+            <PhotoUploadSection
+              disabled={isUploading || !item}
+              errorMessage={photoError}
+              inputId={inputId}
+              isUploading={isUploading}
+              onChange={handleFileChange}
+            />
 
-          <PhotoListSection
-            entries={photoEntries}
-            isLoading={isLoadingPhotos}
-            itemName={item?.name}
-          />
-        </div>
+            <PhotoListSection
+              entries={photoEntries}
+              isLoading={isLoadingPhotos}
+              itemName={item?.name}
+            />
+          </div>
 
-        <DrawerFooter className="px-4 pb-4">
-          <DrawerClose asChild>
-            <Button type="button" variant="outline">
-              閉じる
-            </Button>
-          </DrawerClose>
-        </DrawerFooter>
-      </DrawerContent>
-    </Drawer>
+          <DrawerFooter className="px-4 pb-4">
+            <div className="flex gap-2">
+              {onItemDeleted && item ? (
+                <Button
+                  onClick={() => setDeleteDialogOpen(true)}
+                  type="button"
+                  variant="destructive"
+                >
+                  削除
+                </Button>
+              ) : null}
+              <DrawerClose asChild>
+                <Button className="flex-1" type="button" variant="outline">
+                  閉じる
+                </Button>
+              </DrawerClose>
+            </div>
+          </DrawerFooter>
+        </DrawerContent>
+      </Drawer>
+
+      {item ? (
+        <AlertDialog
+          onOpenChange={setDeleteDialogOpen}
+          open={isDeleteDialogOpen}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>物品を削除しますか？</AlertDialogTitle>
+              <AlertDialogDescription>
+                「{item.name}
+                」を削除します。この操作は取り消せません。
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={isDeleting}>
+                キャンセル
+              </AlertDialogCancel>
+              <AlertDialogAction
+                className="bg-destructive text-white hover:bg-destructive/90"
+                disabled={isDeleting}
+                onClick={handleDeleteItem}
+              >
+                {isDeleting ? "削除中..." : "削除"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      ) : null}
+    </>
   );
 }
 

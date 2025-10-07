@@ -259,6 +259,7 @@ export type ItemListStepProps = {
   onAdd: () => void;
   onRemove: (id: string) => void;
   onChange: (id: string, patch: Partial<DraftItem>) => void;
+  disableAddRemove?: boolean;
 };
 
 export function ItemListStep({
@@ -269,6 +270,7 @@ export function ItemListStep({
   onAdd,
   onRemove,
   onChange,
+  disableAddRemove = false,
 }: ItemListStepProps) {
   return (
     <div className="space-y-3">
@@ -279,21 +281,23 @@ export function ItemListStep({
             {items.length}件登録済み • タップして編集
           </p>
         </div>
-        <Button
-          className="min-h-[44px] shrink-0"
-          onClick={onAdd}
-          size="default"
-          type="button"
-          variant="default"
-        >
-          <PlusIcon />
-          追加
-        </Button>
+        {disableAddRemove ? null : (
+          <Button
+            className="min-h-[44px] shrink-0"
+            onClick={onAdd}
+            size="default"
+            type="button"
+            variant="default"
+          >
+            <PlusIcon />
+            追加
+          </Button>
+        )}
       </div>
       <div className="space-y-2">
         {items.map((item, index) => (
           <ItemCard
-            canRemove={items.length > 1}
+            canRemove={!disableAddRemove && items.length > 1}
             errors={errors[item.id]}
             index={index}
             isActive={item.id === selectedItemId}

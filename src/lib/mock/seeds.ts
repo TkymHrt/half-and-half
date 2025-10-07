@@ -204,7 +204,7 @@ export const itemSeeds: Item[] = [
     pin: {
       areaId: "campus-main",
       floorId: "campus-main-01",
-      source: { x: 0.20, y: 0.78 },
+      source: { x: 0.2, y: 0.78 },
       target: { x: 0.66, y: 0.28 },
     },
   },
@@ -220,7 +220,7 @@ export const itemSeeds: Item[] = [
     pin: {
       areaId: "campus-main",
       floorId: "campus-main-04",
-      source: { x: 0.50, y: 0.20 },
+      source: { x: 0.5, y: 0.2 },
       target: { x: 0.12, y: 0.32 },
     },
   },
@@ -252,8 +252,8 @@ export const itemSeeds: Item[] = [
     pin: {
       areaId: "campus-main",
       floorId: "campus-main-02",
-      source: { x: 0.10, y: 0.85 },
-      target: { x: 0.55, y: 0.60 },
+      source: { x: 0.1, y: 0.85 },
+      target: { x: 0.55, y: 0.6 },
     },
   },
   {
@@ -268,8 +268,8 @@ export const itemSeeds: Item[] = [
     pin: {
       areaId: "campus-main",
       floorId: "campus-main-03",
-      source: { x: 0.40, y: 0.30 },
-      target: { x: 0.70, y: 0.45 },
+      source: { x: 0.4, y: 0.3 },
+      target: { x: 0.7, y: 0.45 },
     },
   },
   {
@@ -285,7 +285,7 @@ export const itemSeeds: Item[] = [
       areaId: "campus-main",
       floorId: "campus-main-01",
       source: { x: 0.05, y: 0.95 },
-      target: { x: 0.85, y: 0.10 },
+      target: { x: 0.85, y: 0.1 },
     },
   },
   {
@@ -300,8 +300,8 @@ export const itemSeeds: Item[] = [
     pin: {
       areaId: "campus-main",
       floorId: "campus-main-02",
-      source: { x: 0.33, y: 0.50 },
-      target: { x: 0.60, y: 0.58 },
+      source: { x: 0.33, y: 0.5 },
+      target: { x: 0.6, y: 0.58 },
     },
   },
   {
@@ -332,8 +332,8 @@ export const itemSeeds: Item[] = [
     pin: {
       areaId: "campus-main",
       floorId: "campus-main-01",
-      source: { x: 0.12, y: 0.80 },
-      target: { x: 0.67, y: 0.30 },
+      source: { x: 0.12, y: 0.8 },
+      target: { x: 0.67, y: 0.3 },
     },
   },
 ];
@@ -516,7 +516,8 @@ export const issueSeeds: Issue[] = [
     reporter: "警備班",
     itemId: "item-signage",
     summary: "看板取付金具の不足",
-    detail: "取り付けに必要なボルトナットが不足している。近隣の備品で代替可能か確認中。",
+    detail:
+      "取り付けに必要なボルトナットが不足している。近隣の備品で代替可能か確認中。",
     kind: "loss",
     status: "open",
   },

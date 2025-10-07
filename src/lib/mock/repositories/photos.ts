@@ -158,6 +158,17 @@ export const PhotoRepository = {
     await updateMetadata(id, { previewDataUrl: dataUrl });
     return dataUrl;
   },
+  async delete(id: EntityId): Promise<boolean> {
+    await delay();
+    const list = await readMetadataList();
+    const filtered = list.filter((photo) => photo.id !== id);
+    if (filtered.length === list.length) {
+      return false;
+    }
+    await writeMetadataList(filtered);
+    await removeBlob(id);
+    return true;
+  },
   async setAll(entries: PhotoSeed[]): Promise<void> {
     const metadataList = entries
       .map((entry) => entry.metadata)

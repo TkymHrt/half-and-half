@@ -96,6 +96,16 @@ export const TaskRepository = {
     await writeJson(STORAGE_KEY, next);
     return updated;
   },
+  async delete(id: EntityId): Promise<boolean> {
+    await delay();
+    const data = (await readJson<Task[]>(STORAGE_KEY)) ?? [];
+    const filtered = data.filter((task) => task.id !== id);
+    if (filtered.length === data.length) {
+      return false;
+    }
+    await writeJson(STORAGE_KEY, filtered);
+    return true;
+  },
   async setAll(tasks: Task[]): Promise<void> {
     await writeJson(STORAGE_KEY, tasks);
   },

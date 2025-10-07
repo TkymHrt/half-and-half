@@ -7,6 +7,17 @@ import { toast } from "sonner";
 import { AppHeader } from "@/components/app/header";
 import { ItemDetailDrawer } from "@/components/app/item-detail-drawer";
 import { ItemStatusSelect } from "@/components/app/item-status-select";
+import { TaskEditDialog } from "@/components/app/task-edit-dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -33,6 +44,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
+  deleteTaskWithLog,
   updateItemStatusWithLog,
   updateTaskStatusWithLog,
 } from "@/lib/application/activity";
@@ -275,6 +287,9 @@ export default function TaskDetailPage({ params }: TaskDetailPageProps) {
     useTaskDetailData(taskId);
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
   const [isDetailOpen, setDetailOpen] = useState(false);
+  const [isEditDialogOpen, setEditDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [isDeleting, setDeleting] = useState(false);
   const taskStatusSelectId = useId();
   const {
     updatingItemId,
@@ -326,6 +341,41 @@ export default function TaskDetailPage({ params }: TaskDetailPageProps) {
     }
   }, []);
 
+  const handleTaskUpdated = useCallback(
+    (context: { task: Task; items: Item[] }) => {
+      setTask(context.task);
+      setItems(context.items);
+      toast.success("タスクを更新しました");
+    },
+    [setItems, setTask]
+  );
+
+  const handleDeleteTask = useCallback(async () => {
+    if (!task) {
+      return;
+    }
+
+    setDeleting(true);
+
+    try {
+      await deleteTaskWithLog({ task, actor: task.handler });
+      toast.success("タスクを削除しました");
+      window.location.href = "/protected/tasks";
+    } catch {
+      toast.error("タスクの削除に失敗しました");
+      setDeleting(false);
+    }
+  }, [task]);
+
+  const handleItemDeleted = useCallback(
+    (itemId: string) => {
+      setItems((previous) => previous.filter((item) => item.id !== itemId));
+      setSelectedItemId(null);
+      setDetailOpen(false);
+    },
+    [setItems]
+  );
+
   return (
     <>
       <AppHeader
@@ -365,6 +415,8 @@ export default function TaskDetailPage({ params }: TaskDetailPageProps) {
               createdAtLabel={createdAtLabel}
               handlerLabel={handlerLabel}
               isStatusUpdating={isTaskStatusUpdating}
+              onOpenDelete={() => setDeleteDialogOpen(true)}
+              onOpenEdit={() => setEditDialogOpen(true)}
               onStatusChange={handleTaskStatusChange}
               statusError={taskStatusError}
               statusSelectId={taskStatusSelectId}
@@ -386,11 +438,50 @@ export default function TaskDetailPage({ params }: TaskDetailPageProps) {
         actor={task?.handler}
         isStatusUpdating={updatingItemId !== null}
         item={selectedItem}
+        items={items}
         onChangeStatus={handleItemStatusChange}
+        onItemDeleted={handleItemDeleted}
         onItemUpdated={handleItemUpdatedFromDrawer}
         onOpenChange={handleDrawerOpenChange}
         open={Boolean(selectedItem) && isDetailOpen}
+        taskId={taskId}
       />
+      {task ? (
+        <>
+          <TaskEditDialog
+            items={items}
+            onOpenChange={setEditDialogOpen}
+            onUpdated={handleTaskUpdated}
+            open={isEditDialogOpen}
+            task={task}
+          />
+          <AlertDialog
+            onOpenChange={setDeleteDialogOpen}
+            open={isDeleteDialogOpen}
+          >
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>タスクを削除しますか？</AlertDialogTitle>
+                <AlertDialogDescription>
+                  このタスクと関連する全ての物品情報が完全に削除されます。この操作は取り消せません。
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel disabled={isDeleting}>
+                  キャンセル
+                </AlertDialogCancel>
+                <AlertDialogAction
+                  className="bg-destructive text-white hover:bg-destructive/90"
+                  disabled={isDeleting}
+                  onClick={handleDeleteTask}
+                >
+                  {isDeleting ? "削除中..." : "削除"}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </>
+      ) : null}
     </>
   );
 }
@@ -403,6 +494,8 @@ type TaskSummaryCardProps = {
   isStatusUpdating: boolean;
   statusError: string | null;
   onStatusChange: (status: TaskStatus) => void;
+  onOpenEdit: () => void;
+  onOpenDelete: () => void;
 };
 
 function TaskSummaryCard({
@@ -412,13 +505,33 @@ function TaskSummaryCard({
   isStatusUpdating,
   statusError,
   onStatusChange,
+  onOpenEdit,
+  onOpenDelete,
 }: TaskSummaryCardProps) {
   const statusBadgeClass = getTaskStatusBadgeClass(task.status);
 
   return (
     <Card className="gap-1">
-      <CardHeader>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0">
         <CardTitle className="text-base">{task.title}</CardTitle>
+        <div className="flex gap-2">
+          <Button
+            onClick={onOpenEdit}
+            size="sm"
+            type="button"
+            variant="outline"
+          >
+            編集
+          </Button>
+          <Button
+            onClick={onOpenDelete}
+            size="sm"
+            type="button"
+            variant="destructive"
+          >
+            削除
+          </Button>
+        </div>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
         <section className="flex flex-col gap-3 rounded-lg">

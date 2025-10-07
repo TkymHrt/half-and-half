@@ -20,6 +20,7 @@ export type TaskDraftState = {
     kind: "source" | "target",
     point: RelativePoint
   ) => void;
+  initializeItems: (items: DraftItem[]) => void;
   reset: () => void;
 };
 
@@ -182,6 +183,11 @@ export function useTaskDrafts(): TaskDraftState {
     [updateItem]
   );
 
+  const initializeItems = useCallback((newItems: DraftItem[]) => {
+    setItems(newItems);
+    setSelectedItemId(newItems[0]?.id ?? null);
+  }, []);
+
   const reset = useCallback(() => {
     const initial = createInitialDraft();
     setItems([initial]);
@@ -201,6 +207,7 @@ export function useTaskDrafts(): TaskDraftState {
     setArea,
     setFloor,
     setPinPoint,
+    initializeItems,
     reset,
   } satisfies TaskDraftState;
 }
