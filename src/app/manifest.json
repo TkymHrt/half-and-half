@@ -1,0 +1,13 @@
+{
+  "name": "物品GO(仮)",
+  "short_name": "物品GO(仮)",
+  "description": "技大祭を円滑にするための物品・タスク管理アプリです。",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#fff",
+  "theme_color": "#fff",
+  "icons": [
+    { "src": "/icon-192x192.png", "type": "image/png", "sizes": "192x192" },
+    { "src": "/icon-512x512.png", "type": "image/png", "sizes": "512x512" }
+  ]
+}

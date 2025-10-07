@@ -213,7 +213,11 @@ export default function MapPage() {
   }, []);
 
   const getPreferredPinKindForItem = useCallback(
-    (item: MapItem, fallback: PinKind | null = null): PinKind | null => {
+    (
+      item: MapItem,
+      fallback: PinKind | null = null,
+      modeOverride: ViewMode | null = null
+    ): PinKind | null => {
       const pin = item.pin;
       if (!pin) {
         return null;
@@ -224,14 +228,24 @@ export default function MapPage() {
         target: Boolean(pin.target),
       } as const;
 
-      return choosePinKind(viewMode, availability, fallback);
+      const effectiveViewMode = modeOverride ?? viewMode;
+
+      return choosePinKind(effectiveViewMode, availability, fallback);
     },
     [viewMode]
   );
 
   const handleSelectItem = useCallback(
-    (item: MapItem, requestedKind: PinKind | null = null) => {
-      const nextKind = getPreferredPinKindForItem(item, requestedKind);
+    (
+      item: MapItem,
+      requestedKind: PinKind | null = null,
+      modeOverride: ViewMode | null = null
+    ) => {
+      const nextKind = getPreferredPinKindForItem(
+        item,
+        requestedKind,
+        modeOverride
+      );
       setSelectedItemId(item.id);
       setSelectedPinKind(nextKind);
       ensureViewModeSupports(nextKind);
@@ -271,6 +285,9 @@ export default function MapPage() {
     setSelectedAreaId(derivedSearchState.areaId);
     setSelectedFloorId(derivedSearchState.floorId);
 
+    const viewOverride =
+      derivedSearchState.viewMode ?? derivedSearchState.pinKind ?? null;
+
     if (derivedSearchState.viewMode) {
       setViewMode(derivedSearchState.viewMode);
     } else {
@@ -278,7 +295,11 @@ export default function MapPage() {
     }
 
     if (derivedSearchState.item) {
-      handleSelectItem(derivedSearchState.item, derivedSearchState.pinKind);
+      handleSelectItem(
+        derivedSearchState.item,
+        derivedSearchState.pinKind,
+        viewOverride
+      );
     }
   }, [
     areas.length,
@@ -610,38 +631,31 @@ type ItemResolutionInput = {
   viewMode: ViewMode | null;
 };
 
-function choosePinKind(
+export function choosePinKind(
   viewMode: ViewMode,
   availability: PinAvailability,
   fallback: PinKind | null
 ): PinKind | null {
-  if (viewMode === "source" && availability.source) {
-    return "source";
-  }
-
-  if (viewMode === "target" && availability.target) {
-    return "target";
-  }
-
-  if (viewMode === "both") {
-    if (availability.target) {
-      return "target";
-    }
-    if (availability.source) {
-      return "source";
-    }
-  }
-
   if (fallback && availability[fallback]) {
     return fallback;
   }
 
-  if (availability.target) {
-    return "target";
-  }
+  const priorities: PinKind[] = (() => {
+    switch (viewMode) {
+      case "source":
+        return ["source", "target"];
+      case "target":
+      case "both":
+        return ["target", "source"];
+      default:
+        return ["target", "source"];
+    }
+  })();
 
-  if (availability.source) {
-    return "source";
+  for (const kind of priorities) {
+    if (availability[kind]) {
+      return kind;
+    }
   }
 
   return null;
