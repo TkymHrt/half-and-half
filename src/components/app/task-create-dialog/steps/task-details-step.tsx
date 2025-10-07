@@ -49,7 +49,7 @@ export function TaskDetailsStep({ form }: TaskDetailsStepProps) {
           render={({ field }) => (
             <FormItem>
               <FormLabel>
-                説明{" "}
+                説明
                 <span className="text-muted-foreground text-xs">(任意)</span>
               </FormLabel>
               <FormControl>
@@ -70,7 +70,7 @@ export function TaskDetailsStep({ form }: TaskDetailsStepProps) {
           render={({ field }) => (
             <FormItem>
               <FormLabel>
-                担当者{" "}
+                担当者
                 <span className="text-muted-foreground text-xs">(任意)</span>
               </FormLabel>
               <FormControl>

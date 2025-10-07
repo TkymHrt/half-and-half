@@ -335,104 +335,100 @@ export function TaskCreateDialog({
   return (
     <Dialog onOpenChange={setOpen} open={open}>
       {trigger ? <DialogTrigger asChild>{trigger}</DialogTrigger> : null}
-      <DialogContent className="h-[100dvh] max-h-[100dvh] w-full max-w-full overflow-hidden p-0 sm:h-auto sm:max-h-[90vh] sm:max-w-3xl sm:rounded-lg sm:p-6">
-        <div className="flex h-full flex-col">
-          <DialogHeader className="shrink-0 border-b p-4 sm:border-0 sm:p-0">
-            <DialogTitle className="text-lg sm:text-xl">
-              タスクを作成
-            </DialogTitle>
-            <DialogDescription className="sr-only sm:not-sr-only">
-              {STEP_LABELS[currentStep]}の入力内容を確認しながら進めてください。
-            </DialogDescription>
-          </DialogHeader>
+      <DialogContent className="max-h-[calc(100vh-2rem)] grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden sm:max-h-[calc(100vh-4rem)]">
+        <DialogHeader>
+          <DialogTitle className="text-lg sm:text-xl">タスクを作成</DialogTitle>
+          <DialogDescription className="sr-only sm:not-sr-only">
+            {STEP_LABELS[currentStep]}の入力内容を確認しながら進めてください。
+          </DialogDescription>
+        </DialogHeader>
 
-          <div className="min-h-0 flex-1 overflow-y-auto">
-            <div className="space-y-4 p-4 pb-safe sm:space-y-6 sm:p-0">
-              <Stepper currentStep={currentStep} steps={STEP_LABELS} />
+        <div className="min-h-0 overflow-y-auto">
+          <div className="space-y-4 p-4 pb-safe sm:space-y-6 sm:p-0">
+            <Stepper currentStep={currentStep} steps={STEP_LABELS} />
 
-              <Separator />
+            <Separator />
 
-              {currentStep === 0 ? <TaskDetailsStep form={form} /> : null}
+            {currentStep === 0 ? <TaskDetailsStep form={form} /> : null}
 
-              {currentStep === 1 ? (
-                <ItemListStep
-                  errors={combinedErrors}
-                  items={items}
-                  onAdd={handleAddItem}
-                  onChange={(id, patch) => handleChangeItem(id, patch)}
-                  onRemove={handleRemoveItem}
-                  onSelect={selectItem}
-                  selectedItemId={selectedItemId}
-                />
-              ) : null}
+            {currentStep === 1 ? (
+              <ItemListStep
+                errors={combinedErrors}
+                items={items}
+                onAdd={handleAddItem}
+                onChange={(id, patch) => handleChangeItem(id, patch)}
+                onRemove={handleRemoveItem}
+                onSelect={selectItem}
+                selectedItemId={selectedItemId}
+              />
+            ) : null}
 
-              {currentStep === 2 ? (
-                <PinPlacementStep
-                  areas={areas}
-                  editMode={pinEditMode}
-                  errors={combinedErrors}
-                  isLoadingAreas={isLoadingAreas}
-                  items={items}
-                  onEditModeChange={setPinEditMode}
-                  onPlacePin={handlePlacePin}
-                  onSelectArea={handleSelectArea}
-                  onSelectFloor={handleSelectFloor}
-                  onSelectItem={selectItem}
-                  selectedItem={selectedItem}
-                  selectedItemId={selectedItemId}
-                />
-              ) : null}
+            {currentStep === 2 ? (
+              <PinPlacementStep
+                areas={areas}
+                editMode={pinEditMode}
+                errors={combinedErrors}
+                isLoadingAreas={isLoadingAreas}
+                items={items}
+                onEditModeChange={setPinEditMode}
+                onPlacePin={handlePlacePin}
+                onSelectArea={handleSelectArea}
+                onSelectFloor={handleSelectFloor}
+                onSelectItem={selectItem}
+                selectedItem={selectedItem}
+                selectedItemId={selectedItemId}
+              />
+            ) : null}
 
-              {errorMessage ? (
-                <p className="text-destructive text-sm" role="alert">
-                  {errorMessage}
-                </p>
-              ) : null}
-            </div>
+            {errorMessage ? (
+              <p className="text-destructive text-sm" role="alert">
+                {errorMessage}
+              </p>
+            ) : null}
           </div>
+        </div>
 
-          <DialogFooter className="shrink-0 border-t p-4 pb-safe sm:mt-6 sm:border-0 sm:p-0">
-            <div className="flex w-full gap-2 sm:w-auto sm:justify-end">
-              {currentStep > 0 ? (
-                <Button
-                  className="min-h-[44px] flex-1 sm:flex-initial"
-                  disabled={isSubmitting}
-                  onClick={handlePrevious}
-                  size="lg"
-                  type="button"
-                  variant="outline"
-                >
-                  戻る
-                </Button>
-              ) : (
-                <Button
-                  className="min-h-[44px] flex-1 sm:flex-initial"
-                  onClick={() => setOpen(false)}
-                  size="lg"
-                  type="button"
-                  variant="outline"
-                >
-                  キャンセル
-                </Button>
-              )}
+        <DialogFooter>
+          <div className="flex w-full gap-2 sm:w-auto sm:justify-end">
+            {currentStep > 0 ? (
               <Button
                 className="min-h-[44px] flex-1 sm:flex-initial"
                 disabled={isSubmitting}
-                onClick={async () => {
-                  if (isLastStep) {
-                    await onSubmit();
-                    return;
-                  }
-                  await handleNext();
-                }}
+                onClick={handlePrevious}
                 size="lg"
                 type="button"
+                variant="outline"
               >
-                {primaryButtonLabel}
+                戻る
               </Button>
-            </div>
-          </DialogFooter>
-        </div>
+            ) : (
+              <Button
+                className="min-h-[44px] flex-1 sm:flex-initial"
+                onClick={() => setOpen(false)}
+                size="lg"
+                type="button"
+                variant="outline"
+              >
+                キャンセル
+              </Button>
+            )}
+            <Button
+              className="min-h-[44px] flex-1 sm:flex-initial"
+              disabled={isSubmitting}
+              onClick={async () => {
+                if (isLastStep) {
+                  await onSubmit();
+                  return;
+                }
+                await handleNext();
+              }}
+              size="lg"
+              type="button"
+            >
+              {primaryButtonLabel}
+            </Button>
+          </div>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

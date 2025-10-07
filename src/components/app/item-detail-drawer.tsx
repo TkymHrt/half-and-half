@@ -209,7 +209,6 @@ function ItemSummarySection({
         <Badge className={cn("text-xs", badgeClass)} variant="outline">
           {getItemStatusLabel(item.status)}
         </Badge>
-        <span className="text-muted-foreground text-xs">ID: {item.id}</span>
       </div>
       <div className="space-y-1">
         <p className="text-muted-foreground text-xs">ステータス</p>

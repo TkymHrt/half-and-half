@@ -2,6 +2,8 @@
 
 import { Button } from "@/components/ui/button";
 import { FormMessage } from "@/components/ui/form";
+import { CrossIcon } from "@/components/ui/icons/akar-icons-cross";
+import { PlusIcon } from "@/components/ui/icons/akar-icons-plus";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -13,7 +15,6 @@ import {
 } from "@/components/ui/select";
 import { getItemStatusLabel } from "@/lib/presentation/status";
 import type { ItemStatus } from "@/types/app";
-
 import type {
   DraftItem,
   DraftItemErrorMap,
@@ -236,7 +237,7 @@ function ItemCard({
                 type="button"
                 variant="ghost"
               >
-                ×
+                <CrossIcon />
               </Button>
             ) : null}
           </div>
@@ -285,7 +286,8 @@ export function ItemListStep({
           type="button"
           variant="default"
         >
-          + 追加
+          <PlusIcon />
+          追加
         </Button>
       </div>
       <div className="space-y-2">
