@@ -1,8 +1,8 @@
 "use client";
 
+import { ChevronRight, Package, User } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
-
 import { AppHeader } from "@/components/app/header";
 import { TaskCreateDialog } from "@/components/app/task-create-dialog";
 import { Badge } from "@/components/ui/badge";
@@ -37,6 +37,12 @@ type TaskRow = {
   statusCounts: Record<ItemStatus, number>;
   quantityTotal: number;
 };
+
+type TaskListRowProps = {
+  row: TaskRow;
+};
+
+// progress bar removed: per-task progress percentage no longer shown
 
 export default function TasksPage() {
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -289,101 +295,9 @@ export default function TasksPage() {
 
             {hasTasks ? (
               <ul className="flex flex-col gap-3">
-                {rows.map((row) => {
-                  const statusClass = getTaskStatusBadgeClass(row.task.status);
-                  const itemStatusSummary = ITEM_STATUS_ORDER.map((status) => ({
-                    status,
-                    count: row.statusCounts[status],
-                  })).filter((entry) => entry.count > 0);
-
-                  return (
-                    <li key={row.task.id}>
-                      <Link
-                        className="group block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-                        href={`/protected/tasks/${encodeURIComponent(row.task.id)}`}
-                      >
-                        <div className="rounded-md border bg-card/60 p-3 transition-colors hover:bg-card/80 group-focus-visible:border-primary/70">
-                          <div className="flex items-start justify-between gap-3">
-                            <div className="min-w-0">
-                              <h3
-                                className={cn(
-                                  "text-sm",
-                                  "font-medium",
-                                  "truncate",
-                                  "text-foreground"
-                                )}
-                                title={row.task.title}
-                              >
-                                {row.task.title}
-                              </h3>
-                              {row.task.description ? (
-                                <p
-                                  className={cn(
-                                    "mt-1",
-                                    "text-xs",
-                                    "text-muted-foreground",
-                                    "line-clamp-2"
-                                  )}
-                                >
-                                  {row.task.description}
-                                </p>
-                              ) : null}
-                              <div className="mt-2 flex flex-wrap items-center gap-3 text-muted-foreground text-xs">
-                                <span>
-                                  担当: {row.task.handler ?? "未設定"}
-                                </span>
-                                <span>
-                                  作成:
-                                  <time dateTime={row.task.createdAt}>
-                                    {formatDate(row.task.createdAt)}
-                                  </time>
-                                </span>
-                              </div>
-                            </div>
-                            <div className="flex shrink-0 flex-col items-end gap-2">
-                              <Badge
-                                className={cn("text-xs", statusClass)}
-                                variant="outline"
-                              >
-                                {getTaskStatusLabel(row.task.status)}
-                              </Badge>
-                              <div className="flex items-center gap-2">
-                                <span className="text-foreground text-xs">
-                                  物品 {row.items.length}
-                                </span>
-                                <span className="text-muted-foreground text-xs">
-                                  / 数量 {row.quantityTotal}
-                                </span>
-                              </div>
-                              <div className="mt-1 flex flex-wrap gap-1">
-                                {itemStatusSummary.length > 0 ? (
-                                  itemStatusSummary.map(({ status, count }) => (
-                                    <Badge
-                                      className="text-nowrap text-[11px]"
-                                      key={status}
-                                      variant="secondary"
-                                    >
-                                      {getItemStatusLabel(status)} {count}
-                                    </Badge>
-                                  ))
-                                ) : (
-                                  <span
-                                    className={cn(
-                                      "text-muted-foreground",
-                                      "text-xs"
-                                    )}
-                                  >
-                                    内訳なし
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </Link>
-                    </li>
-                  );
-                })}
+                {rows.map((row) => (
+                  <TaskListRow key={row.task.id} row={row} />
+                ))}
               </ul>
             ) : null}
           </CardContent>
@@ -393,14 +307,164 @@ export default function TasksPage() {
   );
 }
 
-function formatDate(value: string): string {
-  try {
-    const formatter = new Intl.DateTimeFormat("ja-JP", {
-      dateStyle: "short",
-      timeStyle: "short",
-    });
-    return formatter.format(new Date(value));
-  } catch {
-    return value;
-  }
+function TaskListRow({ row }: TaskListRowProps) {
+  const statusClass = getTaskStatusBadgeClass(row.task.status);
+  const itemStatusSummary = ITEM_STATUS_ORDER.map((status) => ({
+    status,
+    count: row.statusCounts[status],
+  })).filter((entry) => entry.count > 0);
+  const totalItems = row.items.length;
+  const placedCount = row.statusCounts.placed ?? 0;
+  const detailHref = `/protected/tasks/${encodeURIComponent(row.task.id)}`;
+  const quantityLabel = row.quantityTotal.toLocaleString("ja-JP");
+
+  return (
+    <li>
+      <Link
+        className="group block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+        href={detailHref}
+      >
+        <article
+          className={cn(
+            "bg-card/70",
+            "border",
+            "border-border/60",
+            "group-focus-visible:border-primary/70",
+            "hover:-translate-y-0.5",
+            "hover:border-primary/40",
+            "hover:shadow-md",
+            "p-4",
+            "rounded-xl",
+            "shadow-sm",
+            "transition-all"
+          )}
+        >
+          <div className={cn("flex", "flex-col", "gap-3")}>
+            <div className={cn("flex", "gap-2", "items-start")}>
+              <h3
+                className={cn(
+                  "flex-1",
+                  "min-w-0",
+                  "truncate",
+                  "text-base",
+                  "font-semibold",
+                  "text-foreground"
+                )}
+                title={row.task.title}
+              >
+                {row.task.title}
+              </h3>
+              <Badge
+                className={cn("px-2", "shrink-0", "text-xs", statusClass)}
+                variant="outline"
+              >
+                {getTaskStatusLabel(row.task.status)}
+              </Badge>
+              <ChevronRight
+                aria-hidden="true"
+                className={cn(
+                  "group-focus-visible:translate-x-1",
+                  "group-hover:translate-x-1",
+                  "h-4",
+                  "mt-0.5",
+                  "shrink-0",
+                  "text-muted-foreground",
+                  "transition-transform",
+                  "w-4"
+                )}
+              />
+            </div>
+            {row.task.description ? (
+              <p
+                className={cn(
+                  "line-clamp-2",
+                  "text-muted-foreground",
+                  "text-sm"
+                )}
+              >
+                {row.task.description}
+              </p>
+            ) : null}
+
+            <div
+              className={cn(
+                "flex",
+                "flex-wrap",
+                "gap-x-4",
+                "gap-y-2",
+                "items-center",
+                "text-muted-foreground",
+                "text-xs"
+              )}
+            >
+              <span className={cn("gap-1.5", "inline-flex", "items-center")}>
+                <User aria-hidden="true" className="h-4 w-4" />
+                <span>{row.task.handler ?? "担当未設定"}</span>
+              </span>
+              <span
+                className={cn(
+                  "gap-1.5",
+                  "inline-flex",
+                  "items-center",
+                  "text-foreground"
+                )}
+              >
+                <Package aria-hidden="true" className="h-4 w-4" />
+                <span>{totalItems} 件</span>
+              </span>
+              <span className={cn("gap-1.5", "inline-flex", "items-center")}>
+                <span className="text-muted-foreground">数量</span>
+                <span className={cn("font-medium", "text-foreground")}>
+                  {quantityLabel}
+                </span>
+              </span>
+            </div>
+
+            {totalItems > 0 ? (
+              <p className={cn("text-xs", "text-muted-foreground")}>
+                {placedCount} / {totalItems} 件が配置済みです
+              </p>
+            ) : (
+              <p
+                className={cn(
+                  "gap-2",
+                  "inline-flex",
+                  "items-center",
+                  "text-muted-foreground",
+                  "text-xs"
+                )}
+              >
+                まだ物品が登録されていません
+              </p>
+            )}
+
+            {itemStatusSummary.length > 0 ? (
+              <div className={cn("flex", "flex-wrap", "gap-1.5", "pt-1")}>
+                {itemStatusSummary.map(({ status, count }) => {
+                  const summaryBadgeClass =
+                    status === "issue"
+                      ? "bg-rose-500/15 border-rose-500/40 text-rose-700"
+                      : undefined;
+
+                  return (
+                    <Badge
+                      className={cn(
+                        "text-[11px]",
+                        "text-nowrap",
+                        summaryBadgeClass
+                      )}
+                      key={status}
+                      variant="secondary"
+                    >
+                      {getItemStatusLabel(status)} {count}
+                    </Badge>
+                  );
+                })}
+              </div>
+            ) : null}
+          </div>
+        </article>
+      </Link>
+    </li>
+  );
 }

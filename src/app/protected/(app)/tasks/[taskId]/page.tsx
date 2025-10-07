@@ -420,7 +420,7 @@ function TaskSummaryCard({
       <CardHeader>
         <CardTitle className="text-base">{task.title}</CardTitle>
       </CardHeader>
-      <CardContent className="flex flex-col gap-6">
+      <CardContent className="flex flex-col gap-4">
         <section className="flex flex-col gap-3 rounded-lg">
           <Badge className={cn("text-xs", statusBadgeClass)} variant="outline">
             {getTaskStatusLabel(task.status)}
