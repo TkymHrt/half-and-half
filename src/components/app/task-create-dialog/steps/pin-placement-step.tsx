@@ -15,9 +15,8 @@ import {
 } from "@/components/ui/select";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import type { Area, Floor, RelativePoint } from "@/types/app";
-import { PERCENT_DECIMALS, STEP_LABELS } from "../constants";
+import { STEP_LABELS } from "../constants";
 import type { DraftItem, DraftItemErrorMap, PinEditMode } from "../types";
-import { formatPoint } from "../utils";
 
 export type PinPlacementStepProps = {
   items: DraftItem[];
@@ -32,11 +31,6 @@ export type PinPlacementStepProps = {
   onEditModeChange: (mode: PinEditMode) => void;
   areas: Area[];
   isLoadingAreas: boolean;
-};
-
-const STEP_CAPTIONS: Record<PinEditMode, string> = {
-  source: "借用元の位置を選択してください",
-  target: "移動先の位置を選択してください",
 };
 
 function buildPins(
@@ -386,34 +380,11 @@ export function PinPlacementStep({
             </ToggleGroup>
           </div>
 
-          <div className="rounded-md border bg-muted/30 p-3">
-            <p className="mb-2 font-medium text-sm">
-              {STEP_CAPTIONS[editMode]}
+          {selectedErrors?.pin ? (
+            <p className="mt-2 text-destructive text-sm" role="alert">
+              {selectedErrors.pin}
             </p>
-            <div className="grid gap-2 text-sm sm:grid-cols-2">
-              <div className="rounded bg-background p-2">
-                <p className="text-muted-foreground text-xs">借用元</p>
-                <p className="mt-1 font-medium">
-                  {selectedItem.pin?.source
-                    ? formatPoint(selectedItem.pin.source, PERCENT_DECIMALS)
-                    : "未設定"}
-                </p>
-              </div>
-              <div className="rounded bg-background p-2">
-                <p className="text-muted-foreground text-xs">移動先</p>
-                <p className="mt-1 font-medium">
-                  {selectedItem.pin?.target
-                    ? formatPoint(selectedItem.pin.target, PERCENT_DECIMALS)
-                    : "未設定"}
-                </p>
-              </div>
-            </div>
-            {selectedErrors?.pin ? (
-              <p className="mt-2 text-destructive text-sm" role="alert">
-                {selectedErrors.pin}
-              </p>
-            ) : null}
-          </div>
+          ) : null}
         </CardContent>
       </Card>
 
