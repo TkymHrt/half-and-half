@@ -6,7 +6,8 @@
       "**",
       "!**/src/components/ui/**/*.tsx",
       "!**/src/hooks/use-mobile.ts",
-      "!**/src/lib/supabase/*"
+      "!**/src/lib/supabase/*",
+      "!**/src/types/database.types.ts"
     ]
   }
 }
