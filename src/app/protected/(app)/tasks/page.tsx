@@ -302,91 +302,84 @@ export default function TasksPage() {
                         className="group block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                         href={`/protected/tasks/${encodeURIComponent(row.task.id)}`}
                       >
-                        <article className="rounded-lg border bg-card p-4 shadow-sm transition-colors group-hover:border-primary/60 group-focus-visible:border-primary/70">
-                          <div className="flex flex-wrap items-start justify-between gap-2">
-                            <h3
-                              className={cn(
-                                "text-base",
-                                "font-semibold",
-                                "leading-tight",
-                                "text-foreground"
-                              )}
-                            >
-                              {row.task.title}
-                            </h3>
-                            <Badge
-                              className={cn("text-xs", statusClass)}
-                              variant="outline"
-                            >
-                              {getTaskStatusLabel(row.task.status)}
-                            </Badge>
-                          </div>
-                          {row.task.description ? (
-                            <p
-                              className={cn(
-                                "mt-1",
-                                "line-clamp-2",
-                                "text-sm",
-                                "text-muted-foreground"
-                              )}
-                            >
-                              {row.task.description}
-                            </p>
-                          ) : null}
-                          <div
-                            className={cn(
-                              "mt-3",
-                              "grid",
-                              "gap-3",
-                              "text-xs",
-                              "text-muted-foreground",
-                              "sm:grid-cols-2"
-                            )}
-                          >
-                            <div className="flex flex-col gap-1">
-                              <span className="font-medium text-foreground/80">
-                                担当
-                              </span>
-                              <span>{row.task.handler ?? "未設定"}</span>
-                            </div>
-                            <div className="flex flex-col gap-1">
-                              <span className="font-medium text-foreground/80">
-                                作成日時
-                              </span>
-                              <time dateTime={row.task.createdAt}>
-                                {formatDate(row.task.createdAt)}
-                              </time>
-                            </div>
-                          </div>
-                          <div className="mt-3 flex flex-col gap-2">
-                            <p className={cn("text-foreground", "text-sm")}>
-                              物品 {row.items.length} 件 / 数量{" "}
-                              {row.quantityTotal}
-                            </p>
-                            <div className="flex flex-wrap gap-2">
-                              {itemStatusSummary.length > 0 ? (
-                                itemStatusSummary.map(({ status, count }) => (
-                                  <Badge
-                                    className="text-nowrap text-[11px]"
-                                    key={status}
-                                    variant="secondary"
-                                  >
-                                    {getItemStatusLabel(status)} {count}
-                                  </Badge>
-                                ))
-                              ) : (
-                                <span
+                        <div className="rounded-md border bg-card/60 p-3 transition-colors hover:bg-card/80 group-focus-visible:border-primary/70">
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="min-w-0">
+                              <h3
+                                className={cn(
+                                  "text-sm",
+                                  "font-medium",
+                                  "truncate",
+                                  "text-foreground"
+                                )}
+                                title={row.task.title}
+                              >
+                                {row.task.title}
+                              </h3>
+                              {row.task.description ? (
+                                <p
                                   className={cn(
+                                    "mt-1",
+                                    "text-xs",
                                     "text-muted-foreground",
-                                    "text-xs"
+                                    "line-clamp-2"
                                   )}
                                 >
-                                  内訳なし
+                                  {row.task.description}
+                                </p>
+                              ) : null}
+                              <div className="mt-2 flex flex-wrap items-center gap-3 text-muted-foreground text-xs">
+                                <span>
+                                  担当: {row.task.handler ?? "未設定"}
                                 </span>
-                              )}
+                                <span>
+                                  作成:
+                                  <time dateTime={row.task.createdAt}>
+                                    {formatDate(row.task.createdAt)}
+                                  </time>
+                                </span>
+                              </div>
+                            </div>
+                            <div className="flex shrink-0 flex-col items-end gap-2">
+                              <Badge
+                                className={cn("text-xs", statusClass)}
+                                variant="outline"
+                              >
+                                {getTaskStatusLabel(row.task.status)}
+                              </Badge>
+                              <div className="flex items-center gap-2">
+                                <span className="text-foreground text-xs">
+                                  物品 {row.items.length}
+                                </span>
+                                <span className="text-muted-foreground text-xs">
+                                  / 数量 {row.quantityTotal}
+                                </span>
+                              </div>
+                              <div className="mt-1 flex flex-wrap gap-1">
+                                {itemStatusSummary.length > 0 ? (
+                                  itemStatusSummary.map(({ status, count }) => (
+                                    <Badge
+                                      className="text-nowrap text-[11px]"
+                                      key={status}
+                                      variant="secondary"
+                                    >
+                                      {getItemStatusLabel(status)} {count}
+                                    </Badge>
+                                  ))
+                                ) : (
+                                  <span
+                                    className={cn(
+                                      "text-muted-foreground",
+                                      "text-xs"
+                                    )}
+                                  >
+                                    内訳なし
+                                  </span>
+                                )}
+                              </div>
                             </div>
                           </div>
-                        </article>
+                        </div>
                       </Link>
                     </li>
                   );

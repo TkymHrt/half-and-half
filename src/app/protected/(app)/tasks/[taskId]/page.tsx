@@ -408,7 +408,6 @@ type TaskSummaryCardProps = {
 function TaskSummaryCard({
   task,
   handlerLabel,
-  createdAtLabel,
   statusSelectId,
   isStatusUpdating,
   statusError,
@@ -448,22 +447,6 @@ function TaskSummaryCard({
                 )}
               >
                 {handlerLabel}
-              </p>
-            </div>
-            <div className="rounded-md bg-background/70 p-3 shadow-sm">
-              <p
-                className={cn(
-                  "font-medium",
-                  "text-[11px]",
-                  "text-muted-foreground/80",
-                  "tracking-wide",
-                  "uppercase"
-                )}
-              >
-                作成日時
-              </p>
-              <p className={cn("mt-1", "text-foreground", "text-sm")}>
-                {createdAtLabel ?? "-"}
               </p>
             </div>
           </div>
