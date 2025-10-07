@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { type ReactNode, useEffect, useMemo, useState } from "react";
 
 import { AppHeader } from "@/components/app/header";
+import { LogoutButton } from "@/components/logout-button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -388,7 +389,7 @@ export default function HomePage() {
 
   return (
     <>
-      <AppHeader title="ホーム" />
+      <AppHeader action={<LogoutButton />} title="ホーム" />
       <div className="flex flex-1 flex-col gap-6 px-4 py-4 sm:px-6">
         {errorMessage ? (
           <Alert variant="destructive">
