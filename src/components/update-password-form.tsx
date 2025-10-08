@@ -41,7 +41,9 @@ export function UpdatePasswordForm({
       router.push("/protected");
     } catch (caughtError: unknown) {
       setError(
-        caughtError instanceof Error ? caughtError.message : "An error occurred"
+        caughtError instanceof Error
+          ? caughtError.message
+          : "エラーが発生しました"
       );
     } finally {
       setIsLoading(false);
@@ -52,20 +54,20 @@ export function UpdatePasswordForm({
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card>
         <CardHeader>
-          <CardTitle className="text-2xl">Reset Your Password</CardTitle>
+          <CardTitle className="text-2xl">パスワードをリセット</CardTitle>
           <CardDescription>
-            Please enter your new password below.
+            下に新しいパスワードを入力してください。
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleForgotPassword}>
             <div className="flex flex-col gap-6">
               <div className="grid gap-2">
-                <Label htmlFor="password">New password</Label>
+                <Label htmlFor="password">新しいパスワード</Label>
                 <Input
                   id="password"
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="New password"
+                  placeholder="新しいパスワード"
                   required
                   type="password"
                   value={password}
@@ -73,7 +75,7 @@ export function UpdatePasswordForm({
               </div>
               {error && <p className="text-red-500 text-sm">{error}</p>}
               <Button className="w-full" disabled={isLoading} type="submit">
-                {isLoading ? "Saving..." : "Save new password"}
+                {isLoading ? "保存中..." : "新しいパスワードを保存"}
               </Button>
             </div>
           </form>
