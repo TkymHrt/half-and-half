@@ -42,7 +42,7 @@ const TaskCreateDialog = dynamic(
         タスクを作成
       </Button>
     ),
-  },
+  }
 );
 
 type StatusFilter = TaskStatus | "all";

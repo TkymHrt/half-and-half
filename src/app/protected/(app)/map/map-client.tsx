@@ -44,7 +44,7 @@ const FloorMap = dynamic(
   {
     ssr: false,
     loading: () => <Skeleton className="h-full w-full rounded-3xl" />,
-  },
+  }
 );
 
 const STATUS_LABEL: Record<ItemStatus, string> = {
