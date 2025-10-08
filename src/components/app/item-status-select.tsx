@@ -30,6 +30,7 @@ export function ItemStatusSelect({
   "aria-label": ariaLabel,
   triggerClassName,
 }: ItemStatusSelectProps) {
+ console.log("ITEM_STATUS_ORDER:", ITEM_STATUS_ORDER);
   return (
     <Select
       disabled={disabled}
@@ -45,12 +46,16 @@ export function ItemStatusSelect({
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>
       <SelectContent>
-        {ITEM_STATUS_ORDER.map((status) => (
-          <SelectItem key={status} value={status}>
-            {getItemStatusLabel(status)}
-          </SelectItem>
-        ))}
-      </SelectContent>
+  {ITEM_STATUS_ORDER.map((status) => {
+    if (!status || status.trim() === "") return null;
+    return (
+      <SelectItem key={status} value={status}>
+        {getItemStatusLabel(status)}
+      </SelectItem>
+    );
+  })}
+</SelectContent>
+
     </Select>
   );
 }
