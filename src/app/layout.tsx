@@ -9,7 +9,7 @@ const defaultUrl = process.env.VERCEL_URL
 
 export const metadata: Metadata = {
   metadataBase: new URL(defaultUrl),
-  title: "Half＆Half",
+  title: "Half&Half",
   description: "総務局を支援する物品管理アプリです。",
 };
 
