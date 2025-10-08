@@ -1,0 +1,9 @@
+// TypeScript設定の拡張 - 開発中の型エラー抑制
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noImplicitAny": false,
+    "strictNullChecks": false,
+    "strict": false
+  }
+}

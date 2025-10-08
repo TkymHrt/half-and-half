@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import { ensureSeed } from "@/lib/mock";
-import { IssueRepository } from "@/lib/mock/repositories/issues";
-import { ItemRepository } from "@/lib/mock/repositories/items";
-import { TaskRepository } from "@/lib/mock/repositories/tasks";
+import {
+  createIssueRepository,
+  createItemRepository,
+  createTaskRepository,
+} from "@/lib/repositories/client";
 import type { Issue, Item, Task } from "@/types/app";
 
 export function useBootstrapData() {
@@ -20,11 +21,17 @@ export function useBootstrapData() {
       setBootstrapError(null);
 
       try {
-        await ensureSeed();
+        const [itemRepository, taskRepository, issueRepository] =
+          await Promise.all([
+            createItemRepository(),
+            createTaskRepository(),
+            createIssueRepository(),
+          ]);
+
         const [itemList, taskList, issueList] = await Promise.all([
-          ItemRepository.list(),
-          TaskRepository.list(),
-          IssueRepository.list(),
+          itemRepository.findAll(),
+          taskRepository.findAll(),
+          issueRepository.findAll(),
         ]);
 
         if (!isActive) {
@@ -63,5 +70,5 @@ export function useBootstrapData() {
     setIssues,
     isBootstrapLoading,
     bootstrapError,
-  } as const;
+  };
 }

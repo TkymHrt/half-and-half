@@ -1,16 +1,34 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useId, useMemo, useState } from "react";
 
 import { AppHeader } from "@/components/app/header";
-import { FloorMap, type FloorMapPin } from "@/components/app/map/floor-map";
 import { MapControls } from "@/components/app/map/map-controls";
 import { MapItemList } from "@/components/app/map/map-item-list";
 import { PinLegend } from "@/components/app/map/pin-legend";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+
+// FloorMapを動的インポート（SSRを無効化）
+const FloorMap = dynamic(
+  () =>
+    import("@/components/app/map/floor-map").then((mod) => ({
+      default: mod.FloorMap,
+    })),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex h-full w-full items-center justify-center">
+        地図を読み込み中...
+      </div>
+    ),
+  }
+);
+
+import type { FloorMapPin } from "@/components/app/map/floor-map";
 import {
   Drawer,
   DrawerClose,
@@ -23,8 +41,11 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ensureSeed } from "@/lib/mock";
-import { AreaRepository } from "@/lib/mock/repositories/areas";
-import { ItemRepository } from "@/lib/mock/repositories/items";
+import {
+  createAreaRepository,
+  createItemRepository,
+  isUsingSupabase,
+} from "@/lib/repositories/client";
 import { cn } from "@/lib/utils";
 import type {
   Area,
@@ -88,17 +109,25 @@ export default function MapPage() {
     let active = true;
 
     async function bootstrap() {
-      await ensureSeed();
+      if (!isUsingSupabase()) {
+        await ensureSeed();
+      }
+
+      const [areaRepository, itemRepository] = await Promise.all([
+        createAreaRepository(),
+        createItemRepository(),
+      ]);
+
       const [areaList, itemList] = await Promise.all([
-        AreaRepository.list(),
-        ItemRepository.list(),
+        areaRepository.findAll(),
+        itemRepository.findAll(), // 全アイテムを取得
       ]);
 
       if (!active) {
         return;
       }
 
-      const normalizedItems: MapItem[] = itemList.map((item) => ({
+      const normalizedItems: MapItem[] = itemList.map((item: Item) => ({
         ...item,
         areaId: item.pin?.areaId ?? null,
         floorId: item.pin?.floorId ?? null,

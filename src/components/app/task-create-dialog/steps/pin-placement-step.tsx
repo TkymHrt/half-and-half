@@ -1,11 +1,28 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useId, useMemo } from "react";
 import type { FloorMapPin } from "@/components/app/map/floor-map";
-import { FloorMap } from "@/components/app/map/floor-map";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
+
+// FloorMapを動的インポート（SSRを無効化）
+const FloorMap = dynamic(
+  () =>
+    import("@/components/app/map/floor-map").then((mod) => ({
+      default: mod.FloorMap,
+    })),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex h-full w-full items-center justify-center">
+        地図を読み込み中...
+      </div>
+    ),
+  }
+);
+
 import {
   Select,
   SelectContent,

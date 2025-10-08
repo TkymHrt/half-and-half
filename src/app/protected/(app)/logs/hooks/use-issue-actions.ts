@@ -1,9 +1,10 @@
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
-import { IssueRepository } from "@/lib/mock/repositories/issues";
-import { LogRepository } from "@/lib/mock/repositories/logs";
+import {
+  createIssueRepository,
+  createLogRepository,
+} from "@/lib/repositories/client";
 import type { Issue, LogEvent } from "@/types/app";
-import { LOG_ID_RADIX } from "../constants";
 
 export function useIssueActions(
   appendLog: (log: LogEvent) => void,
@@ -23,9 +24,13 @@ export function useIssueActions(
       setIssueActionError(null);
 
       try {
-        const updated = await IssueRepository.update(issue.id, {
-          status: nextStatus,
-        });
+        const issueRepository = await createIssueRepository();
+        const logRepository = await createLogRepository();
+
+        const updated = await issueRepository.updateStatus(
+          issue.id,
+          nextStatus
+        );
 
         if (!updated) {
           throw new Error("ISSUE_UPDATE_FAILED");
@@ -35,9 +40,7 @@ export function useIssueActions(
           prev.map((entity) => (entity.id === updated.id ? updated : entity))
         );
 
-        const logEvent: LogEvent = {
-          id: `log-${Date.now().toString(LOG_ID_RADIX)}`,
-          at: new Date().toISOString(),
+        const createdLog = await logRepository.create({
           actor: "運営本部",
           type: "issue_status_changed",
           payload: {
@@ -47,10 +50,9 @@ export function useIssueActions(
             summary: updated.summary,
             previousStatus: issue.status,
           },
-        } satisfies LogEvent;
+        });
 
-        await LogRepository.add(logEvent);
-        appendLog(logEvent);
+        appendLog(createdLog);
 
         toast.success(
           nextStatus === "resolved"
@@ -59,7 +61,7 @@ export function useIssueActions(
         );
       } catch {
         setIssueActionError(
-          "問題のステータス更新に失敗しました。時間をおいて再度お試しください。"
+          "問題ステータスの更新に失敗しました。時間をおいて再度お試しください。"
         );
       } finally {
         setUpdatingIssueId(null);
@@ -69,8 +71,8 @@ export function useIssueActions(
   );
 
   return {
+    handleToggleIssueStatus,
     updatingIssueId,
     issueActionError,
-    handleToggleIssueStatus,
-  } as const;
+  };
 }

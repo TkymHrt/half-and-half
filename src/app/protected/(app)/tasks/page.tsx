@@ -17,8 +17,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ensureSeed } from "@/lib/mock";
-import { ItemRepository } from "@/lib/mock/repositories/items";
-import { TaskRepository } from "@/lib/mock/repositories/tasks";
 import {
   createEmptyItemStatusCount,
   getItemStatusLabel,
@@ -26,6 +24,11 @@ import {
   getTaskStatusLabel,
   ITEM_STATUS_ORDER,
 } from "@/lib/presentation/status";
+import {
+  createItemRepository,
+  createTaskRepository,
+  isUsingSupabase,
+} from "@/lib/repositories/client";
 import { cn } from "@/lib/utils";
 import type { Item, ItemStatus, LogEvent, Task, TaskStatus } from "@/types/app";
 
@@ -60,10 +63,20 @@ export default function TasksPage() {
       setErrorMessage(null);
 
       try {
-        await ensureSeed();
+        // Supabaseを使用していない場合のみ ensureSeed を実行
+        if (!isUsingSupabase()) {
+          await ensureSeed();
+        }
+
+        // Repository抽象化層を使用
+        const [taskRepo, itemRepo] = await Promise.all([
+          createTaskRepository(),
+          createItemRepository(),
+        ]);
+
         const [taskList, itemList] = await Promise.all([
-          TaskRepository.list(),
-          ItemRepository.list(),
+          taskRepo.findAll(),
+          itemRepo.findByTaskId(""), // 全てのアイテムを取得（空文字で全件取得）
         ]);
 
         if (!isActive) {

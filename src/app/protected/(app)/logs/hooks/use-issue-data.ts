@@ -1,29 +1,35 @@
 import { useMemo } from "react";
-import type { Issue, Item } from "@/types/app";
-import type { IssueListEntry } from "../types";
-import { buildIssueStats } from "../utils";
+import type { Issue } from "@/types/app";
 
-export function useIssueData(issues: Issue[], itemsById: Map<string, Item>) {
-  const issueStats = useMemo(() => buildIssueStats(issues), [issues]);
+const PERCENTAGE_MULTIPLIER = 100;
 
-  const issueEntries = useMemo<IssueListEntry[]>(() => {
-    if (issues.length === 0) {
-      return [];
-    }
+export function useIssueData(issues: Issue[]) {
+  const openIssues = useMemo(
+    () => issues.filter((issue) => issue.status === "open"),
+    [issues]
+  );
 
-    return issues
-      .slice()
-      .sort((a, b) => {
-        if (a.status !== b.status) {
-          return a.status === "open" ? -1 : 1;
-        }
-        return a.at < b.at ? 1 : -1;
-      })
-      .map((issue) => ({
-        issue,
-        item: issue.itemId ? itemsById.get(issue.itemId) : undefined,
-      }));
-  }, [issues, itemsById]);
+  const resolvedIssues = useMemo(
+    () => issues.filter((issue) => issue.status === "resolved"),
+    [issues]
+  );
 
-  return { issueStats, issueEntries } as const;
+  const issueStats = useMemo(
+    () => ({
+      total: issues.length,
+      open: openIssues.length,
+      resolved: resolvedIssues.length,
+      resolvedRate:
+        issues.length > 0
+          ? (resolvedIssues.length / issues.length) * PERCENTAGE_MULTIPLIER
+          : 0,
+    }),
+    [issues.length, openIssues.length, resolvedIssues.length]
+  );
+
+  return {
+    openIssues,
+    resolvedIssues,
+    issueStats,
+  };
 }

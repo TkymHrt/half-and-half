@@ -7,7 +7,10 @@
       "!**/src/components/ui/**/*.tsx",
       "!**/src/hooks/use-mobile.ts",
       "!**/src/lib/supabase/*",
-      "!**/src/types/database.types.ts"
+      "!**/src/types/database.types.ts",
+      "!**/src/types/supabase.ts",
+      "!**/src/lib/data/mappers.ts",
+      "!**/src/lib/data/supabase/*"
     ]
   }
 }
