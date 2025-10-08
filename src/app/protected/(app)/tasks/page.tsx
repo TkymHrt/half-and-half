@@ -1,10 +1,11 @@
 "use client";
 
 import { ChevronRight, Package, User } from "lucide-react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
+
 import { AppHeader } from "@/components/app/header";
-import { TaskCreateDialog } from "@/components/app/task-create-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -28,6 +29,21 @@ import {
 } from "@/lib/presentation/status";
 import { cn } from "@/lib/utils";
 import type { Item, ItemStatus, LogEvent, Task, TaskStatus } from "@/types/app";
+
+const TaskCreateDialog = dynamic(
+  () =>
+    import("@/components/app/task-create-dialog").then((mod) => ({
+      default: mod.TaskCreateDialog,
+    })),
+  {
+    ssr: false,
+    loading: () => (
+      <Button disabled size="sm" type="button">
+        タスクを作成
+      </Button>
+    ),
+  },
+);
 
 type StatusFilter = TaskStatus | "all";
 
