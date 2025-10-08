@@ -10,33 +10,26 @@ const PLACEHOLDER_PREVIEW_DATA_URL =
 export const areaSeeds: Area[] = [
   {
     id: "campus-main",
-    name: "配置図",
+    name: "講義棟",
     floors: [
       {
         id: "campus-main-01",
-        name: "メイン図面 (1/4)",
-        imageUrl: "/maps/map_0001.webp",
+        name: "１階",
+        imageUrl: "/maps/map_0008.webp",
         width: FLOOR_WIDTH,
         height: FLOOR_HEIGHT,
       },
       {
         id: "campus-main-02",
-        name: "メイン図面 (2/4)",
-        imageUrl: "/maps/map_0002.webp",
+        name: "２階",
+        imageUrl: "/maps/map_0009.webp",
         width: FLOOR_WIDTH,
         height: FLOOR_HEIGHT,
       },
       {
         id: "campus-main-03",
-        name: "メイン図面 (3/4)",
-        imageUrl: "/maps/map_0003.webp",
-        width: FLOOR_WIDTH,
-        height: FLOOR_HEIGHT,
-      },
-      {
-        id: "campus-main-04",
-        name: "メイン図面 (4/4)",
-        imageUrl: "/maps/map_0004.webp",
+        name: "３階",
+        imageUrl: "/maps/map_0010.webp",
         width: FLOOR_WIDTH,
         height: FLOOR_HEIGHT,
       },
