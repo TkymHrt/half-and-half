@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useId, useMemo, useState } from "react";
+import { use, useCallback, useEffect, useId, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { AppHeader } from "@/components/app/header";
@@ -281,8 +281,13 @@ function useTaskStatusManager(
   } as const;
 }
 
-export default function TaskDetailPage({ params }: TaskDetailPageProps) {
-  const taskId = decodeURIComponent(params.taskId);
+export default function TaskDetailPage({ 
+  params 
+}: { 
+  params: Promise<{ taskId: string }> 
+}) {
+  const resolvedParams = use(params);
+  const taskId = decodeURIComponent(resolvedParams.taskId);
   const { task, setTask, items, setItems, isLoading, errorMessage } =
     useTaskDetailData(taskId);
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);

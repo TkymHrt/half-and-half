@@ -18,7 +18,11 @@ import {
 } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import { createTaskWithItems } from "@/lib/application/activity";
-import { AreaRepository } from "@/lib/mock/repositories/areas";
+import { ensureSeed } from "@/lib/mock";
+import {
+  createAreaRepository,
+  isUsingSupabase,
+} from "@/lib/repositories/client";
 import type { Area, Item, LogEvent, RelativePoint, Task } from "@/types/app";
 
 import { STEP_LABELS } from "./task-create-dialog/constants";
@@ -148,14 +152,19 @@ export function TaskCreateDialog({
 
     let active = true;
     setIsLoadingAreas(true);
-    AreaRepository.list()
-      .then((data) => {
+
+    async function loadAreas() {
+      try {
+        if (!isUsingSupabase()) {
+          await ensureSeed();
+        }
+        const areaRepository = await createAreaRepository();
+        const data = await areaRepository.findAll();
         if (!active) {
           return;
         }
         setAreas(data);
-      })
-      .catch(() => {
+      } catch {
         if (!active) {
           return;
         }
@@ -163,12 +172,14 @@ export function TaskCreateDialog({
         setErrorMessage(
           "図面データの読み込みに失敗しました。時間をおいて再度お試しください。"
         );
-      })
-      .finally(() => {
+      } finally {
         if (active) {
           setIsLoadingAreas(false);
         }
-      });
+      }
+    }
+
+    loadAreas();
 
     return () => {
       active = false;
