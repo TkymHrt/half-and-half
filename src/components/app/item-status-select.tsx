@@ -45,11 +45,17 @@ export function ItemStatusSelect({
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>
       <SelectContent>
-        {ITEM_STATUS_ORDER.map((status) => (
-          <SelectItem key={status} value={status}>
-            {getItemStatusLabel(status)}
-          </SelectItem>
-        ))}
+        {ITEM_STATUS_ORDER.map((status) => {
+          if (!status || status.trim() === "") {
+            return null;
+          }
+
+          return (
+            <SelectItem key={status} value={status}>
+              {getItemStatusLabel(status)}
+            </SelectItem>
+          );
+        })}
       </SelectContent>
     </Select>
   );
