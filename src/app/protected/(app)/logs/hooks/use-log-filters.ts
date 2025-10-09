@@ -1,10 +1,11 @@
 import { useCallback, useMemo, useState } from "react";
+import type { LogTypeFilter } from "../types";
 
 export function useLogFilters() {
   const [keywordInput, setKeywordInput] = useState("");
   const [startDateInput, setStartDateInput] = useState("");
   const [endDateInput, setEndDateInput] = useState("");
-  const [logTypeFilter, setLogTypeFilter] = useState("all");
+  const [logTypeFilter, setLogTypeFilter] = useState<LogTypeFilter>("all");
 
   const resolvedQuery = useMemo(
     () => ({
@@ -42,7 +43,7 @@ export function useLogFilters() {
     setKeywordInput,
     setStartDateInput,
     setEndDateInput,
-    setLogTypeFilter,
+    setLogTypeFilter: (value: LogTypeFilter) => setLogTypeFilter(value),
     resolvedQuery,
     hasActiveFilters,
     handleClearFilters,

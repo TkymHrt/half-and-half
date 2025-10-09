@@ -16,6 +16,7 @@ import { useIssueData } from "./hooks/use-issue-data";
 import { useLogEntries } from "./hooks/use-log-entries";
 import { useLogFeed } from "./hooks/use-log-feed";
 import { useLogFilters } from "./hooks/use-log-filters";
+import { logEventToLogListEntry } from "./utils";
 
 export default function LogsPage() {
   const [isDialogOpen, setDialogOpen] = useState(false);
@@ -123,11 +124,7 @@ export default function LogsPage() {
             />
 
             <LogListCard
-              entries={logs.map((log) => ({
-                ...log,
-                relatedItem: log.relatedItem,
-                relatedTask: log.relatedTask,
-              }))}
+              entries={logs.map((log) => logEventToLogListEntry(log))}
               filters={{
                 keyword: keywordInput,
                 startDate: startDateInput,
