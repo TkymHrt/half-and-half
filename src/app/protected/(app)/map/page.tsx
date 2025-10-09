@@ -9,6 +9,7 @@ import { AppHeader } from "@/components/app/header";
 import { MapControls } from "@/components/app/map/map-controls";
 import { MapItemList } from "@/components/app/map/map-item-list";
 import { PinLegend } from "@/components/app/map/pin-legend";
+import { TaskSelectionDialog } from "@/components/app/map/task-selection-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
@@ -54,6 +55,7 @@ import type {
   Item,
   ItemStatus,
   RelativePoint,
+  Task,
 } from "@/types/app";
 
 const STATUS_LABEL: Record<ItemStatus, string> = {
@@ -96,6 +98,7 @@ export default function MapPage() {
   const searchSignature = searchParams.toString();
   const [areas, setAreas] = useState<Area[]>([]);
   const [items, setItems] = useState<MapItem[]>([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
   const [selectedAreaId, setSelectedAreaId] = useState<EntityId | null>(null);
   const [selectedFloorId, setSelectedFloorId] = useState<EntityId | null>(null);
   const [selectedItemId, setSelectedItemId] = useState<EntityId | null>(null);
@@ -104,6 +107,10 @@ export default function MapPage() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [isLoading, setIsLoading] = useState(true);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [isAddingPin, setIsAddingPin] = useState(false);
+  const [pendingPinLocation, setPendingPinLocation] =
+    useState<RelativePoint | null>(null);
+  const [isTaskSelectionOpen, setIsTaskSelectionOpen] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -118,9 +125,15 @@ export default function MapPage() {
         createItemRepository(),
       ]);
 
-      const [areaList, itemList] = await Promise.all([
+      const { createTaskRepository } = await import(
+        "@/lib/repositories/client"
+      );
+      const taskRepository = await createTaskRepository();
+
+      const [areaList, itemList, taskList] = await Promise.all([
         areaRepository.findAll(),
         itemRepository.findAll(), // 全アイテムを取得
+        taskRepository.findAll(), // 全タスクを取得
       ]);
 
       if (!active) {
@@ -135,6 +148,7 @@ export default function MapPage() {
 
       setAreas(areaList);
       setItems(normalizedItems);
+      setTasks(taskList);
       const firstArea = areaList.at(0) ?? null;
       const firstFloor = firstArea?.floors.at(0) ?? null;
       setSelectedAreaId(firstArea?.id ?? null);
@@ -296,6 +310,87 @@ export default function MapPage() {
     [filteredItems, handleSelectItem]
   );
 
+  const handleAddPin = useCallback(
+    (point: RelativePoint) => {
+      if (!isAddingPin) {
+        return;
+      }
+
+      if (!selectedAreaId) {
+        return;
+      }
+
+      if (!selectedFloorId) {
+        return;
+      }
+
+      // ピンの位置を保存して、タスク選択ダイアログを表示
+      setPendingPinLocation(point);
+      setIsTaskSelectionOpen(true);
+      setIsAddingPin(false);
+    },
+    [isAddingPin, selectedAreaId, selectedFloorId]
+  );
+
+  const handleTaskSelection = useCallback(
+    (
+      selectedTask: Task | null,
+      itemData?: {
+        name: string;
+        quantity: number;
+        sourceName: string;
+        targetName: string;
+      }
+    ) => {
+      if (!pendingPinLocation) {
+        return;
+      }
+
+      if (!selectedAreaId) {
+        return;
+      }
+
+      if (!selectedFloorId) {
+        return;
+      }
+
+      const newPinId = `new-pin-${Date.now()}`;
+      const coordinatePrecision = 3;
+
+      // 新しいアイテムを作成
+      const newItem: MapItem = {
+        id: newPinId,
+        taskId: selectedTask?.id ?? "new-task",
+        name: itemData?.name ?? "新しいピン",
+        quantity: itemData?.quantity ?? 1,
+        sourceName: itemData?.sourceName ?? "未設定",
+        targetName:
+          itemData?.targetName ??
+          `新しい位置 (${pendingPinLocation.x.toFixed(coordinatePrecision)}, ${pendingPinLocation.y.toFixed(coordinatePrecision)})`,
+        handler: "手動追加",
+        status: "unplaced",
+        areaId: selectedAreaId,
+        floorId: selectedFloorId,
+        pin: {
+          areaId: selectedAreaId,
+          floorId: selectedFloorId,
+          target: pendingPinLocation,
+          source: undefined,
+        },
+      };
+
+      // アイテムリストに追加
+      setItems((prev) => [...prev, newItem]);
+
+      // 状態をリセット
+      setPendingPinLocation(null);
+      setIsTaskSelectionOpen(false);
+
+      // 新しく作成したピンを選択
+      handleSelectItem(newItem);
+    },
+    [pendingPinLocation, selectedAreaId, selectedFloorId, handleSelectItem]
+  );
   const derivedSearchState = useMemo(
     () => deriveMapStateFromSearch(searchSignature, areas, areaMap, items),
     [areaMap, areas, items, searchSignature]
@@ -472,6 +567,7 @@ export default function MapPage() {
               focusedPinId={focusedPinId}
               mapLabel={mapLabelText}
               onPinSelect={handlePinSelect}
+              onPlace={isAddingPin ? handleAddPin : undefined}
               pins={pins}
             />
           )}
@@ -481,9 +577,11 @@ export default function MapPage() {
           <div className="pointer-events-auto absolute top-2 right-2 left-2 flex flex-col gap-2 sm:top-4 sm:right-auto sm:left-4 sm:max-w-xl">
             <MapControls
               areas={areas}
+              isAddingPin={isAddingPin}
               onAreaChange={setSelectedAreaId}
               onFloorChange={setSelectedFloorId}
               onStatusFilterChange={setStatusFilter}
+              onToggleAddPin={() => setIsAddingPin(!isAddingPin)}
               onViewModeChange={setViewMode}
               selectedArea={selectedArea}
               selectedAreaId={selectedAreaId}
@@ -628,6 +726,16 @@ export default function MapPage() {
           </DrawerFooter>
         </DrawerContent>
       </Drawer>
+
+      <TaskSelectionDialog
+        isOpen={isTaskSelectionOpen}
+        onClose={() => {
+          setIsTaskSelectionOpen(false);
+          setPendingPinLocation(null);
+        }}
+        onSelectTask={handleTaskSelection}
+        tasks={tasks}
+      />
     </>
   );
 }

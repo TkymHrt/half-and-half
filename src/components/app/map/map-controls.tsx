@@ -1,7 +1,9 @@
 "use client";
 
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronDown, ChevronUp, Plus } from "lucide-react";
 import { useState } from "react";
+
+import { Button } from "@/components/ui/button";
 
 import {
   Select,
@@ -23,10 +25,12 @@ type MapControlsProps = {
   selectedFloorId: EntityId | null;
   viewMode: ViewMode;
   statusFilter: ItemStatus | "all";
+  isAddingPin?: boolean;
   onAreaChange: (value: EntityId | null) => void;
   onFloorChange: (value: EntityId | null) => void;
   onViewModeChange: (value: ViewMode) => void;
   onStatusFilterChange: (value: ItemStatus | "all") => void;
+  onToggleAddPin?: () => void;
 };
 
 const STATUS_LABEL: Record<ItemStatus, string> = {
@@ -44,10 +48,12 @@ export function MapControls({
   selectedFloorId,
   viewMode,
   statusFilter,
+  isAddingPin = false,
   onAreaChange,
   onFloorChange,
   onViewModeChange,
   onStatusFilterChange,
+  onToggleAddPin,
 }: MapControlsProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -174,6 +180,18 @@ export function MapControls({
               両方
             </ToggleGroupItem>
           </ToggleGroup>
+
+          {onToggleAddPin && (
+            <Button
+              className="mt-2 w-full sm:mt-3"
+              onClick={onToggleAddPin}
+              size="sm"
+              variant={isAddingPin ? "default" : "outline"}
+            >
+              <Plus className="mr-2 size-4" />
+              {isAddingPin ? "ピン追加をキャンセル" : "新しいピンを追加"}
+            </Button>
+          )}
 
           <p className="mt-2 hidden font-medium text-foreground text-xs sm:mt-3 sm:block sm:text-sm">
             {selectedArea?.name ?? "エリア未選択"}
