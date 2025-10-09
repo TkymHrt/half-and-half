@@ -1,20 +1,19 @@
-import { Badge } from "./ui/badge";
-import { Button } from "./ui/button";
+import Image from "next/image";
+import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 
 export function EnvVarWarning() {
   return (
-    <div className="flex items-center gap-4">
-      <Badge className="font-normal" variant={"outline"}>
-        Supabase environment variables required
-      </Badge>
-      <div className="flex gap-2">
-        <Button disabled size="sm" variant={"outline"}>
-          Sign in
-        </Button>
-        <Button disabled size="sm" variant={"default"}>
-          Sign up
-        </Button>
-      </div>
-    </div>
+    <Alert className="border-amber-500/50 bg-amber-500/10">
+      <span className="flex h-6 w-6 items-center justify-center rounded-md bg-amber-500/20">
+        <Image alt="Half & Half" height={16} src="/icon.svg" width={16} />
+      </span>
+      <AlertTitle className="text-amber-600 dark:text-amber-500">
+        Supabaseの環境変数が見つかりません
+      </AlertTitle>
+      <AlertDescription className="text-amber-600/80 dark:text-amber-500/80">
+        `.env.local` に Supabase
+        のURLとAnonキーを設定してから再読み込みしてください。
+      </AlertDescription>
+    </Alert>
   );
 }

@@ -54,34 +54,34 @@ export function ForgotPasswordForm({
       {success ? (
         <Card>
           <CardHeader>
-            <CardTitle className="text-2xl">Check Your Email</CardTitle>
-            <CardDescription>Password reset instructions sent</CardDescription>
+            <CardTitle className="text-2xl">メールを確認してください</CardTitle>
+            <CardDescription>
+              パスワードリセット手順を送信しました
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <p className="text-muted-foreground text-sm">
-              If you registered using your email and password, you will receive
-              a password reset email.
+              メールアドレスとパスワードで登録されている場合、パスワードをリセットするためのメールが届きます。
             </p>
           </CardContent>
         </Card>
       ) : (
         <Card>
           <CardHeader>
-            <CardTitle className="text-2xl">Reset Your Password</CardTitle>
+            <CardTitle className="text-2xl">パスワードをリセット</CardTitle>
             <CardDescription>
-              Type in your email and we&apos;ll send you a link to reset your
-              password
+              メールアドレスを入力すると、パスワードをリセットするためのリンクをお送りします
             </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleForgotPassword}>
               <div className="flex flex-col gap-6">
                 <div className="grid gap-2">
-                  <Label htmlFor="email">Email</Label>
+                  <Label htmlFor="email">メールアドレス</Label>
                   <Input
                     id="email"
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="m@example.com"
+                    placeholder="example.nutfes@gmail.com"
                     required
                     type="email"
                     value={email}
@@ -89,16 +89,16 @@ export function ForgotPasswordForm({
                 </div>
                 {error && <p className="text-red-500 text-sm">{error}</p>}
                 <Button className="w-full" disabled={isLoading} type="submit">
-                  {isLoading ? "Sending..." : "Send reset email"}
+                  {isLoading ? "送信中..." : "リセットメールを送信"}
                 </Button>
               </div>
               <div className="mt-4 text-center text-sm">
-                Already have an account?{" "}
+                すでにアカウントをお持ちですか？{" "}
                 <Link
                   className="underline underline-offset-4"
                   href="/auth/login"
                 >
-                  Login
+                  ログイン
                 </Link>
               </div>
             </form>
